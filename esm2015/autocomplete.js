@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
@@ -13,11 +13,7 @@ import { Overlay, OverlayConfig, OverlayModule } from '@angular/cdk/overlay';
 import { Directionality } from '@angular/cdk/bidi';
 import { DOWN_ARROW, ENTER, ESCAPE, TAB, UP_ARROW } from '@angular/cdk/keycodes';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { filter } from 'rxjs/operators/filter';
-import { first } from 'rxjs/operators/first';
-import { switchMap } from 'rxjs/operators/switchMap';
-import { tap } from 'rxjs/operators/tap';
-import { delay } from 'rxjs/operators/delay';
+import { RxChain, delay, doOperator, filter, first, switchMap } from '@angular/cdk/rxjs';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatFormField } from '@angular/material/form-field';
 import { DOCUMENT } from '@angular/platform-browser';
@@ -25,11 +21,6 @@ import { Subject } from 'rxjs/Subject';
 import { fromEvent } from 'rxjs/observable/fromEvent';
 import { merge } from 'rxjs/observable/merge';
 import { of } from 'rxjs/observable/of';
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 /**
  * Autocomplete IDs need to be unique across components, so this counter exists outside of
@@ -84,7 +75,7 @@ class MatAutocomplete {
         return this._isOpen && this.showPanel;
     }
     /**
-     * Takes classes set on the host mat-autocomplete element and applies them to the panel
+     * Takes classes set on the host md-autocomplete element and applies them to the panel
      * inside the overlay container to allow for easy styling.
      * @param {?} classList
      * @return {?}
@@ -154,25 +145,22 @@ MatAutocomplete.decorators = [
                 }
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatAutocomplete.ctorParameters = () => [
     { type: ChangeDetectorRef, },
     { type: ElementRef, },
 ];
 MatAutocomplete.propDecorators = {
-    "template": [{ type: ViewChild, args: [TemplateRef,] },],
-    "panel": [{ type: ViewChild, args: ['panel',] },],
-    "options": [{ type: ContentChildren, args: [MatOption, { descendants: true },] },],
-    "optionGroups": [{ type: ContentChildren, args: [MatOptgroup,] },],
-    "displayWith": [{ type: Input },],
-    "optionSelected": [{ type: Output },],
-    "classList": [{ type: Input, args: ['class',] },],
+    'template': [{ type: ViewChild, args: [TemplateRef,] },],
+    'panel': [{ type: ViewChild, args: ['panel',] },],
+    'options': [{ type: ContentChildren, args: [MatOption, { descendants: true },] },],
+    'optionGroups': [{ type: ContentChildren, args: [MatOptgroup,] },],
+    'displayWith': [{ type: Input },],
+    'optionSelected': [{ type: Output },],
+    'classList': [{ type: Input, args: ['class',] },],
 };
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 /**
  * The height of each autocomplete option.
@@ -333,16 +321,15 @@ class MatAutocompleteTrigger {
         if (!this._document) {
             return of(null);
         }
-        return merge(fromEvent(this._document, 'click'), fromEvent(this._document, 'touchend'))
-            .pipe(filter((event) => {
-            const /** @type {?} */ clickTarget = /** @type {?} */ (event.target);
+        return RxChain.from(merge(fromEvent(this._document, 'click'), fromEvent(this._document, 'touchend'))).call(filter, (event) => {
+            const /** @type {?} */ clickTarget = (event.target);
             const /** @type {?} */ formField = this._formField ?
                 this._formField._elementRef.nativeElement : null;
             return this._panelOpen &&
                 clickTarget !== this._element.nativeElement &&
                 (!formField || !formField.contains(clickTarget)) &&
                 (!!this._overlayRef && !this._overlayRef.overlayElement.contains(clickTarget));
-        }));
+        }).result();
     }
     /**
      * Sets the autocomplete's value. Part of the ControlValueAccessor interface
@@ -415,7 +402,7 @@ class MatAutocompleteTrigger {
         // event on focus/blur/load if the input has a placeholder. See:
         // https://connect.microsoft.com/IE/feedback/details/885747/
         if (document.activeElement === event.target) {
-            this._onChange((/** @type {?} */ (event.target)).value);
+            this._onChange(((event.target)).value);
             this.openPanel();
         }
     }
@@ -487,23 +474,19 @@ class MatAutocompleteTrigger {
      * @return {?}
      */
     _subscribeToClosingActions() {
-        const /** @type {?} */ firstStable = this._zone.onStable.asObservable().pipe(first());
-        const /** @type {?} */ optionChanges = this.autocomplete.options.changes.pipe(tap(() => this._positionStrategy.recalculateLastPosition()), 
-        // Defer emitting to the stream until the next tick, because changing
-        // bindings in here will cause "changed after checked" errors.
-        delay(0));
+        const /** @type {?} */ firstStable = first.call(this._zone.onStable.asObservable());
+        const /** @type {?} */ optionChanges = RxChain.from(this.autocomplete.options.changes)
+            .call(doOperator, () => this._positionStrategy.recalculateLastPosition())
+            .call(delay, 0)
+            .result();
         // When the zone is stable initially, and when the option list changes...
-        return merge(firstStable, optionChanges)
-            .pipe(
-        // create a new stream of panelClosingActions, replacing any previous streams
-        // that were created, and flatten it so our stream only emits closing events...
-        switchMap(() => {
+        return RxChain.from(merge(firstStable, optionChanges))
+            .call(switchMap, () => {
             this._resetActiveItem();
             this.autocomplete._setVisibility();
             return this.panelClosingActions;
-        }), 
-        // when the first closing event occurs...
-        first())
+        })
+            .call(first)
             .subscribe(event => this._setValueAndClose(event));
     }
     /**
@@ -649,7 +632,9 @@ MatAutocompleteTrigger.decorators = [
                 providers: [MAT_AUTOCOMPLETE_VALUE_ACCESSOR]
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatAutocompleteTrigger.ctorParameters = () => [
     { type: ElementRef, },
     { type: Overlay, },
@@ -662,13 +647,8 @@ MatAutocompleteTrigger.ctorParameters = () => [
     { type: undefined, decorators: [{ type: Optional }, { type: Inject, args: [DOCUMENT,] },] },
 ];
 MatAutocompleteTrigger.propDecorators = {
-    "autocomplete": [{ type: Input, args: ['matAutocomplete',] },],
+    'autocomplete': [{ type: Input, args: ['matAutocomplete',] },],
 };
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 class MatAutocompleteModule {
 }
@@ -680,18 +660,11 @@ MatAutocompleteModule.decorators = [
                 providers: [MAT_AUTOCOMPLETE_SCROLL_STRATEGY_PROVIDER],
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatAutocompleteModule.ctorParameters = () => [];
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 /**
  * Generated bundle index. Do not edit.
  */

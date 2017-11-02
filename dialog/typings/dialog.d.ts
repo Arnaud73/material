@@ -28,6 +28,7 @@ export declare class MatDialog {
     private _openDialogsAtThisLevel;
     private _afterAllClosedAtThisLevel;
     private _afterOpenAtThisLevel;
+    private _boundKeydown;
     /** Keeps track of the currently-open dialogs. */
     readonly openDialogs: MatDialogRef<any>[];
     /** Stream that emits when a dialog has been opened. */
@@ -46,7 +47,7 @@ export declare class MatDialog {
      * @param config Extra configuration options.
      * @returns Reference to the newly-opened dialog.
      */
-    open<T, D = any>(componentOrTemplateRef: ComponentType<T> | TemplateRef<T>, config?: MatDialogConfig<D>): MatDialogRef<T>;
+    open<T>(componentOrTemplateRef: ComponentType<T> | TemplateRef<T>, config?: MatDialogConfig): MatDialogRef<T>;
     /**
      * Closes all of the currently-open dialogs.
      */
@@ -99,4 +100,9 @@ export declare class MatDialog {
      * @param dialogRef Dialog to be removed.
      */
     private _removeOpenDialog(dialogRef);
+    /**
+     * Handles global key presses while there are open dialogs. Closes the
+     * top dialog when the user presses escape.
+     */
+    private _handleKeydown(event);
 }

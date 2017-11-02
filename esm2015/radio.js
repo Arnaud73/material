@@ -1,23 +1,18 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ContentChildren, Directive, ElementRef, EventEmitter, Input, NgModule, Optional, Output, Renderer2, ViewChild, ViewEncapsulation, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { A11yModule, FocusMonitor } from '@angular/cdk/a11y';
-import { UNIQUE_SELECTION_DISPATCHER_PROVIDER, UniqueSelectionDispatcher } from '@angular/cdk/collections';
 import { VIEWPORT_RULER_PROVIDER } from '@angular/cdk/overlay';
 import { MatCommonModule, MatRipple, MatRippleModule, mixinColor, mixinDisableRipple, mixinDisabled } from '@angular/material/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
+import { UNIQUE_SELECTION_DISPATCHER_PROVIDER, UniqueSelectionDispatcher } from '@angular/cdk/collections';
+import { A11yModule, FocusMonitor } from '@angular/cdk/a11y';
 
 // Increasing integer for generating unique ids for radio components.
 let nextUniqueId = 0;
@@ -326,20 +321,22 @@ MatRadioGroup.decorators = [
                 inputs: ['disabled'],
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatRadioGroup.ctorParameters = () => [
     { type: ChangeDetectorRef, },
 ];
 MatRadioGroup.propDecorators = {
-    "change": [{ type: Output },],
-    "_radios": [{ type: ContentChildren, args: [forwardRef(() => MatRadioButton), { descendants: true },] },],
-    "name": [{ type: Input },],
-    "align": [{ type: Input },],
-    "labelPosition": [{ type: Input },],
-    "value": [{ type: Input },],
-    "selected": [{ type: Input },],
-    "disabled": [{ type: Input },],
-    "required": [{ type: Input },],
+    'change': [{ type: Output },],
+    '_radios': [{ type: ContentChildren, args: [forwardRef(() => MatRadioButton),] },],
+    'name': [{ type: Input },],
+    'align': [{ type: Input },],
+    'labelPosition': [{ type: Input },],
+    'value': [{ type: Input },],
+    'selected': [{ type: Input },],
+    'disabled': [{ type: Input },],
+    'required': [{ type: Input },],
 };
 /**
  * \@docs-private
@@ -662,7 +659,9 @@ MatRadioButton.decorators = [
                 changeDetection: ChangeDetectionStrategy.OnPush,
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatRadioButton.ctorParameters = () => [
     { type: MatRadioGroup, decorators: [{ type: Optional },] },
     { type: ElementRef, },
@@ -672,25 +671,20 @@ MatRadioButton.ctorParameters = () => [
     { type: UniqueSelectionDispatcher, },
 ];
 MatRadioButton.propDecorators = {
-    "id": [{ type: Input },],
-    "name": [{ type: Input },],
-    "ariaLabel": [{ type: Input, args: ['aria-label',] },],
-    "ariaLabelledby": [{ type: Input, args: ['aria-labelledby',] },],
-    "checked": [{ type: Input },],
-    "value": [{ type: Input },],
-    "align": [{ type: Input },],
-    "labelPosition": [{ type: Input },],
-    "disabled": [{ type: Input },],
-    "required": [{ type: Input },],
-    "change": [{ type: Output },],
-    "_ripple": [{ type: ViewChild, args: [MatRipple,] },],
-    "_inputElement": [{ type: ViewChild, args: ['input',] },],
+    'id': [{ type: Input },],
+    'name': [{ type: Input },],
+    'ariaLabel': [{ type: Input, args: ['aria-label',] },],
+    'ariaLabelledby': [{ type: Input, args: ['aria-labelledby',] },],
+    'checked': [{ type: Input },],
+    'value': [{ type: Input },],
+    'align': [{ type: Input },],
+    'labelPosition': [{ type: Input },],
+    'disabled': [{ type: Input },],
+    'required': [{ type: Input },],
+    'change': [{ type: Output },],
+    '_ripple': [{ type: ViewChild, args: [MatRipple,] },],
+    '_inputElement': [{ type: ViewChild, args: ['input',] },],
 };
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 class MatRadioModule {
 }
@@ -702,18 +696,11 @@ MatRadioModule.decorators = [
                 declarations: [MatRadioGroup, MatRadioButton],
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatRadioModule.ctorParameters = () => [];
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 /**
  * Generated bundle index. Do not edit.
  */

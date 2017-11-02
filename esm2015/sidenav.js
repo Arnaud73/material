@@ -1,11 +1,11 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { A11yModule, FocusMonitor, FocusTrapFactory } from '@angular/cdk/a11y';
+import { A11yModule, FocusTrapFactory } from '@angular/cdk/a11y';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ContentChild, ContentChildren, ElementRef, EventEmitter, Inject, Input, NgModule, NgZone, Optional, Output, Renderer2, ViewEncapsulation, forwardRef } from '@angular/core';
@@ -17,18 +17,8 @@ import { coerceBooleanProperty, coerceNumberProperty } from '@angular/cdk/coerci
 import { ESCAPE } from '@angular/cdk/keycodes';
 import { DOCUMENT } from '@angular/platform-browser';
 import { merge } from 'rxjs/observable/merge';
-import { filter } from 'rxjs/operators/filter';
-import { first } from 'rxjs/operators/first';
-import { startWith } from 'rxjs/operators/startWith';
-import { takeUntil } from 'rxjs/operators/takeUntil';
-import { map } from 'rxjs/operators/map';
 import { Subject } from 'rxjs/Subject';
-import 'rxjs/Observable';
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
+import { RxChain, filter, first, startWith, takeUntil } from '@angular/cdk/rxjs';
 
 /**
  * Throws an exception when two MatDrawer are matching the same position.
@@ -90,7 +80,9 @@ MatDrawerContent.decorators = [
                 preserveWhitespaces: false,
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatDrawerContent.ctorParameters = () => [
     { type: ChangeDetectorRef, },
     { type: MatDrawerContainer, decorators: [{ type: Inject, args: [forwardRef(() => MatDrawerContainer),] },] },
@@ -102,13 +94,11 @@ class MatDrawer {
     /**
      * @param {?} _elementRef
      * @param {?} _focusTrapFactory
-     * @param {?} _focusMonitor
      * @param {?} _doc
      */
-    constructor(_elementRef, _focusTrapFactory, _focusMonitor, _doc) {
+    constructor(_elementRef, _focusTrapFactory, _doc) {
         this._elementRef = _elementRef;
         this._focusTrapFactory = _focusTrapFactory;
-        this._focusMonitor = _focusMonitor;
         this._doc = _doc;
         this._elementFocusedBeforeDrawerWasOpened = null;
         /**
@@ -127,23 +117,21 @@ class MatDrawer {
          */
         this._animationStarted = new EventEmitter();
         /**
+         * Whether the drawer is animating. Used to prevent overlapping animations.
+         */
+        this._isAnimating = false;
+        /**
          * Current state of the sidenav animation.
          */
         this._animationState = 'void';
         /**
-         * Event emitted when the drawer open state is changed.
-         */
-        this.openedChange = new EventEmitter();
-        /**
          * Event emitted when the drawer is fully opened.
-         * @deprecated Use `openedChange` instead.
          */
-        this.onOpen = this._openedStream;
+        this.onOpen = new EventEmitter();
         /**
          * Event emitted when the drawer is fully closed.
-         * @deprecated Use `openedChange` instead.
          */
-        this.onClose = this._closedStream;
+        this.onClose = new EventEmitter();
         /**
          * Event emitted when the drawer's position changes.
          */
@@ -157,19 +145,15 @@ class MatDrawer {
          * to know when to when the mode changes so it can adapt the margins on the content.
          */
         this._modeChanged = new Subject();
-        this.openedChange.subscribe((opened) => {
-            if (opened) {
-                if (this._doc) {
-                    this._elementFocusedBeforeDrawerWasOpened = /** @type {?} */ (this._doc.activeElement);
-                }
-                if (this._isFocusTrapEnabled && this._focusTrap) {
-                    this._focusTrap.focusInitialElementWhenReady();
-                }
+        this.onOpen.subscribe(() => {
+            if (this._doc) {
+                this._elementFocusedBeforeDrawerWasOpened = this._doc.activeElement;
             }
-            else {
-                this._restoreFocus();
+            if (this._isFocusTrapEnabled && this._focusTrap) {
+                this._focusTrap.focusInitialElementWhenReady();
             }
         });
+        this.onClose.subscribe(() => this._restoreFocus());
     }
     /**
      * The side that the drawer is attached to.
@@ -223,20 +207,6 @@ class MatDrawer {
      */
     set disableClose(value) { this._disableClose = coerceBooleanProperty(value); }
     /**
-     * Event emitted when the drawer has been opened.
-     * @return {?}
-     */
-    get _openedStream() {
-        return this.openedChange.pipe(filter(o => o), map(() => { }));
-    }
-    /**
-     * Event emitted when the drawer has been closed.
-     * @return {?}
-     */
-    get _closedStream() {
-        return this.openedChange.pipe(filter(o => !o), map(() => { }));
-    }
-    /**
      * @return {?}
      */
     get _isFocusTrapEnabled() {
@@ -249,17 +219,16 @@ class MatDrawer {
      * @return {?}
      */
     _restoreFocus() {
-        const /** @type {?} */ activeEl = this._doc && this._doc.activeElement;
+        let /** @type {?} */ activeEl = this._doc && this._doc.activeElement;
         if (activeEl && this._elementRef.nativeElement.contains(activeEl)) {
             if (this._elementFocusedBeforeDrawerWasOpened instanceof HTMLElement) {
-                this._focusMonitor.focusVia(this._elementFocusedBeforeDrawerWasOpened, this._openedVia);
+                this._elementFocusedBeforeDrawerWasOpened.focus();
             }
             else {
                 this._elementRef.nativeElement.blur();
             }
         }
         this._elementFocusedBeforeDrawerWasOpened = null;
-        this._openedVia = null;
     }
     /**
      * @return {?}
@@ -292,12 +261,10 @@ class MatDrawer {
     }
     /**
      * Open the drawer.
-     * @param {?=} openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
      * @return {?}
      */
-    open(openedVia) {
-        return this.toggle(true, openedVia);
+    open() {
+        return this.toggle(true);
     }
     /**
      * Close the drawer.
@@ -309,28 +276,27 @@ class MatDrawer {
     /**
      * Toggle this drawer.
      * @param {?=} isOpen Whether the drawer should be open.
-     * @param {?=} openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
      * @return {?}
      */
-    toggle(isOpen = !this.opened, openedVia = 'program') {
-        this._opened = isOpen;
-        if (isOpen) {
-            this._animationState = this._enableAnimations ? 'open' : 'open-instant';
-            this._openedVia = openedVia;
-        }
-        else {
-            this._animationState = 'void';
-            this._restoreFocus();
-        }
-        if (this._focusTrap) {
-            this._focusTrap.enabled = this._isFocusTrapEnabled;
+    toggle(isOpen = !this.opened) {
+        if (!this._isAnimating) {
+            this._opened = isOpen;
+            if (isOpen) {
+                this._animationState = this._enableAnimations ? 'open' : 'open-instant';
+            }
+            else {
+                this._animationState = 'void';
+            }
+            this._currentTogglePromise = new Promise(resolve => {
+                first.call(isOpen ? this.onOpen : this.onClose).subscribe(resolve);
+            });
+            if (this._focusTrap) {
+                this._focusTrap.enabled = this._isFocusTrapEnabled;
+            }
         }
         // TODO(crisbeto): This promise is here for backwards-compatibility.
         // It should be removed next time we do breaking changes in the drawer.
-        return new Promise(resolve => {
-            (isOpen ? this.onOpen : this.onClose).pipe(first()).subscribe(resolve);
-        });
+        return ((this._currentTogglePromise));
     }
     /**
      * Handles the keyboard events.
@@ -349,6 +315,7 @@ class MatDrawer {
      * @return {?}
      */
     _onAnimationStart(event) {
+        this._isAnimating = true;
         this._animationStarted.emit(event);
     }
     /**
@@ -358,11 +325,18 @@ class MatDrawer {
     _onAnimationEnd(event) {
         const { fromState, toState } = event;
         if (toState.indexOf('open') === 0 && fromState === 'void') {
-            this.openedChange.emit(true);
+            this.onOpen.emit(new MatDrawerToggleResult('open', true));
         }
         else if (toState === 'void' && fromState.indexOf('open') === 0) {
-            this.openedChange.emit(false);
+            this.onClose.emit(new MatDrawerToggleResult('close', true));
         }
+        // Note: as of Angular 4.3, the animations module seems to fire the `start` callback before
+        // the end if animations are disabled. Make this call async to ensure that it still fires
+        // at the appropriate time.
+        Promise.resolve().then(() => {
+            this._isAnimating = false;
+            this._currentTogglePromise = null;
+        });
     }
     /**
      * @return {?}
@@ -407,26 +381,24 @@ MatDrawer.decorators = [
                 preserveWhitespaces: false,
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatDrawer.ctorParameters = () => [
     { type: ElementRef, },
     { type: FocusTrapFactory, },
-    { type: FocusMonitor, },
     { type: undefined, decorators: [{ type: Optional }, { type: Inject, args: [DOCUMENT,] },] },
 ];
 MatDrawer.propDecorators = {
-    "position": [{ type: Input },],
-    "align": [{ type: Input },],
-    "mode": [{ type: Input },],
-    "disableClose": [{ type: Input },],
-    "openedChange": [{ type: Output },],
-    "_openedStream": [{ type: Output, args: ['opened',] },],
-    "_closedStream": [{ type: Output, args: ['closed',] },],
-    "onOpen": [{ type: Output, args: ['open',] },],
-    "onClose": [{ type: Output, args: ['close',] },],
-    "onPositionChanged": [{ type: Output, args: ['positionChanged',] },],
-    "onAlignChanged": [{ type: Output, args: ['align-changed',] },],
-    "opened": [{ type: Input },],
+    'position': [{ type: Input },],
+    'align': [{ type: Input },],
+    'mode': [{ type: Input },],
+    'disableClose': [{ type: Input },],
+    'onOpen': [{ type: Output, args: ['open',] },],
+    'onClose': [{ type: Output, args: ['close',] },],
+    'onPositionChanged': [{ type: Output, args: ['positionChanged',] },],
+    'onAlignChanged': [{ type: Output, args: ['align-changed',] },],
+    'opened': [{ type: Input },],
 };
 /**
  * <mat-drawer-container> component.
@@ -460,7 +432,7 @@ class MatDrawerContainer {
         // If a `Dir` directive exists up the tree, listen direction changes and update the left/right
         // properties to point to the proper start/end.
         if (_dir != null) {
-            _dir.change.pipe(takeUntil(this._destroyed)).subscribe(() => this._validateDrawers());
+            takeUntil.call(_dir.change, this._destroyed).subscribe(() => this._validateDrawers());
         }
     }
     /**
@@ -477,7 +449,7 @@ class MatDrawerContainer {
      * @return {?}
      */
     ngAfterContentInit() {
-        this._drawers.changes.pipe(startWith(null)).subscribe(() => {
+        startWith.call(this._drawers.changes, null).subscribe(() => {
             this._validateDrawers();
             this._drawers.forEach((drawer) => {
                 this._watchDrawerToggle(drawer);
@@ -521,7 +493,9 @@ class MatDrawerContainer {
      * @return {?}
      */
     _watchDrawerToggle(drawer) {
-        drawer._animationStarted.pipe(takeUntil(this._drawers.changes), filter((event) => event.fromState !== event.toState))
+        RxChain.from(drawer._animationStarted)
+            .call(takeUntil, this._drawers.changes)
+            .call(filter, (event) => event.fromState !== event.toState)
             .subscribe((event) => {
             // Set the transition class on the container so that the animations occur. This should not
             // be set initially because animations should only be triggered via a change in state.
@@ -532,7 +506,7 @@ class MatDrawerContainer {
             this._changeDetectorRef.markForCheck();
         });
         if (drawer.mode !== 'side') {
-            drawer.openedChange.pipe(takeUntil(this._drawers.changes)).subscribe(() => this._setContainerClass(drawer.opened));
+            takeUntil.call(merge(drawer.onOpen, drawer.onClose), this._drawers.changes).subscribe(() => this._setContainerClass(drawer.opened));
         }
     }
     /**
@@ -547,8 +521,8 @@ class MatDrawerContainer {
         }
         // NOTE: We need to wait for the microtask queue to be empty before validating,
         // since both drawers may be swapping positions at the same time.
-        drawer.onPositionChanged.pipe(takeUntil(this._drawers.changes)).subscribe(() => {
-            this._ngZone.onMicrotaskEmpty.asObservable().pipe(first()).subscribe(() => {
+        takeUntil.call(drawer.onPositionChanged, this._drawers.changes).subscribe(() => {
+            first.call(this._ngZone.onMicrotaskEmpty.asObservable()).subscribe(() => {
                 this._validateDrawers();
             });
         });
@@ -560,7 +534,7 @@ class MatDrawerContainer {
      */
     _watchDrawerMode(drawer) {
         if (drawer) {
-            drawer._modeChanged.pipe(takeUntil(merge(this._drawers.changes, this._destroyed)))
+            takeUntil.call(drawer._modeChanged, merge(this._drawers.changes, this._destroyed))
                 .subscribe(() => {
                 this._updateContentMargins();
                 this._changeDetectorRef.markForCheck();
@@ -626,14 +600,14 @@ class MatDrawerContainer {
         // Close all open drawers where closing is not disabled and the mode is not `side`.
         [this._start, this._end]
             .filter(drawer => drawer && !drawer.disableClose && drawer.mode !== 'side')
-            .forEach(drawer => /** @type {?} */ ((drawer)).close());
+            .forEach(drawer => ((drawer)).close());
     }
     /**
      * @return {?}
      */
     _isShowingBackdrop() {
-        return (this._isDrawerOpen(this._start) && /** @type {?} */ ((this._start)).mode != 'side')
-            || (this._isDrawerOpen(this._end) && /** @type {?} */ ((this._end)).mode != 'side');
+        return (this._isDrawerOpen(this._start) && ((this._start)).mode != 'side')
+            || (this._isDrawerOpen(this._end) && ((this._end)).mode != 'side');
     }
     /**
      * @param {?} drawer
@@ -683,7 +657,7 @@ MatDrawerContainer.decorators = [
     { type: Component, args: [{selector: 'mat-drawer-container',
                 exportAs: 'matDrawerContainer',
                 template: "<div class=\"mat-drawer-backdrop\" (click)=\"_onBackdropClicked()\" [class.mat-drawer-shown]=\"_isShowingBackdrop()\"></div><ng-content select=\"mat-drawer\"></ng-content><ng-content select=\"mat-drawer-content\"></ng-content><mat-drawer-content *ngIf=\"!_content\" cdkScrollable><ng-content></ng-content></mat-drawer-content>",
-                styles: [".mat-drawer-container{position:relative;z-index:1;box-sizing:border-box;-webkit-overflow-scrolling:touch;display:block;overflow:hidden}.mat-drawer-container[fullscreen]{top:0;left:0;right:0;bottom:0;position:absolute}.mat-drawer-container[fullscreen].mat-drawer-opened{overflow:hidden}.mat-drawer-backdrop{top:0;left:0;right:0;bottom:0;position:absolute;display:block;z-index:3;visibility:hidden}.mat-drawer-backdrop.mat-drawer-shown{visibility:visible}.mat-drawer-transition .mat-drawer-backdrop{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:background-color,visibility}@media screen and (-ms-high-contrast:active){.mat-drawer-backdrop{opacity:.5}}.mat-drawer-content{-webkit-backface-visibility:hidden;backface-visibility:hidden;position:relative;z-index:1;display:block;height:100%;overflow:auto}.mat-drawer-transition .mat-drawer-content{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:transform,margin-left,margin-right}.mat-drawer{position:relative;z-index:4;display:block;position:absolute;top:0;bottom:0;z-index:3;min-width:5vw;outline:0;box-sizing:border-box;overflow-y:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-side{z-index:2}.mat-drawer.mat-drawer-end{right:0;transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer{transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer.mat-drawer-end{left:0;right:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-opened:not(.mat-drawer-side),.mat-drawer.mat-drawer-opening:not(.mat-drawer-side){box-shadow:0 8px 10px -5px rgba(0,0,0,.2),0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12)}.mat-sidenav-fixed{position:fixed}"],
+                styles: [".mat-drawer-container{position:relative;z-index:1;box-sizing:border-box;-webkit-overflow-scrolling:touch;display:block;overflow:hidden}.mat-drawer-container[fullscreen]{top:0;left:0;right:0;bottom:0;position:absolute}.mat-drawer-container[fullscreen].mat-drawer-opened{overflow:hidden}.mat-drawer-backdrop{top:0;left:0;right:0;bottom:0;position:absolute;display:block;z-index:3;visibility:hidden}.mat-drawer-backdrop.mat-drawer-shown{visibility:visible}.mat-drawer-transition .mat-drawer-backdrop{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:background-color,visibility}@media screen and (-ms-high-contrast:active){.mat-drawer-backdrop{opacity:.5}}.mat-drawer-content{position:relative;z-index:1;display:block;height:100%;overflow:auto}.mat-drawer-transition .mat-drawer-content{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:transform,margin-left,margin-right}.mat-drawer{position:relative;z-index:4;display:block;position:absolute;top:0;bottom:0;z-index:3;min-width:5vw;outline:0;box-sizing:border-box;overflow-y:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-side{z-index:2}.mat-drawer.mat-drawer-end{right:0;transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer{transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer.mat-drawer-end{left:0;right:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-opened:not(.mat-drawer-side),.mat-drawer.mat-drawer-opening:not(.mat-drawer-side){box-shadow:0 8px 10px -5px rgba(0,0,0,.2),0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12)}.mat-sidenav-fixed{position:fixed}"],
                 host: {
                     'class': 'mat-drawer-container',
                 },
@@ -692,7 +666,9 @@ MatDrawerContainer.decorators = [
                 preserveWhitespaces: false,
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatDrawerContainer.ctorParameters = () => [
     { type: Directionality, decorators: [{ type: Optional },] },
     { type: ElementRef, },
@@ -701,15 +677,10 @@ MatDrawerContainer.ctorParameters = () => [
     { type: ChangeDetectorRef, },
 ];
 MatDrawerContainer.propDecorators = {
-    "_drawers": [{ type: ContentChildren, args: [MatDrawer,] },],
-    "_content": [{ type: ContentChild, args: [MatDrawerContent,] },],
-    "backdropClick": [{ type: Output },],
+    '_drawers': [{ type: ContentChildren, args: [MatDrawer,] },],
+    '_content': [{ type: ContentChild, args: [MatDrawerContent,] },],
+    'backdropClick': [{ type: Output },],
 };
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 class MatSidenavContent extends MatDrawerContent {
     /**
@@ -733,7 +704,9 @@ MatSidenavContent.decorators = [
                 preserveWhitespaces: false,
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatSidenavContent.ctorParameters = () => [
     { type: ChangeDetectorRef, },
     { type: MatSidenavContainer, decorators: [{ type: Inject, args: [forwardRef(() => MatSidenavContainer),] },] },
@@ -817,12 +790,14 @@ MatSidenav.decorators = [
                 preserveWhitespaces: false,
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatSidenav.ctorParameters = () => [];
 MatSidenav.propDecorators = {
-    "fixedInViewport": [{ type: Input },],
-    "fixedTopGap": [{ type: Input },],
-    "fixedBottomGap": [{ type: Input },],
+    'fixedInViewport': [{ type: Input },],
+    'fixedTopGap': [{ type: Input },],
+    'fixedBottomGap': [{ type: Input },],
 };
 class MatSidenavContainer extends MatDrawerContainer {
 }
@@ -830,7 +805,7 @@ MatSidenavContainer.decorators = [
     { type: Component, args: [{selector: 'mat-sidenav-container',
                 exportAs: 'matSidenavContainer',
                 template: "<div class=\"mat-drawer-backdrop\" (click)=\"_onBackdropClicked()\" [class.mat-drawer-shown]=\"_isShowingBackdrop()\"></div><ng-content select=\"mat-sidenav\"></ng-content><ng-content select=\"mat-sidenav-content\"></ng-content><mat-sidenav-content *ngIf=\"!_content\" cdkScrollable><ng-content></ng-content></mat-sidenav-content>",
-                styles: [".mat-drawer-container{position:relative;z-index:1;box-sizing:border-box;-webkit-overflow-scrolling:touch;display:block;overflow:hidden}.mat-drawer-container[fullscreen]{top:0;left:0;right:0;bottom:0;position:absolute}.mat-drawer-container[fullscreen].mat-drawer-opened{overflow:hidden}.mat-drawer-backdrop{top:0;left:0;right:0;bottom:0;position:absolute;display:block;z-index:3;visibility:hidden}.mat-drawer-backdrop.mat-drawer-shown{visibility:visible}.mat-drawer-transition .mat-drawer-backdrop{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:background-color,visibility}@media screen and (-ms-high-contrast:active){.mat-drawer-backdrop{opacity:.5}}.mat-drawer-content{-webkit-backface-visibility:hidden;backface-visibility:hidden;position:relative;z-index:1;display:block;height:100%;overflow:auto}.mat-drawer-transition .mat-drawer-content{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:transform,margin-left,margin-right}.mat-drawer{position:relative;z-index:4;display:block;position:absolute;top:0;bottom:0;z-index:3;min-width:5vw;outline:0;box-sizing:border-box;overflow-y:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-side{z-index:2}.mat-drawer.mat-drawer-end{right:0;transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer{transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer.mat-drawer-end{left:0;right:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-opened:not(.mat-drawer-side),.mat-drawer.mat-drawer-opening:not(.mat-drawer-side){box-shadow:0 8px 10px -5px rgba(0,0,0,.2),0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12)}.mat-sidenav-fixed{position:fixed}"],
+                styles: [".mat-drawer-container{position:relative;z-index:1;box-sizing:border-box;-webkit-overflow-scrolling:touch;display:block;overflow:hidden}.mat-drawer-container[fullscreen]{top:0;left:0;right:0;bottom:0;position:absolute}.mat-drawer-container[fullscreen].mat-drawer-opened{overflow:hidden}.mat-drawer-backdrop{top:0;left:0;right:0;bottom:0;position:absolute;display:block;z-index:3;visibility:hidden}.mat-drawer-backdrop.mat-drawer-shown{visibility:visible}.mat-drawer-transition .mat-drawer-backdrop{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:background-color,visibility}@media screen and (-ms-high-contrast:active){.mat-drawer-backdrop{opacity:.5}}.mat-drawer-content{position:relative;z-index:1;display:block;height:100%;overflow:auto}.mat-drawer-transition .mat-drawer-content{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:transform,margin-left,margin-right}.mat-drawer{position:relative;z-index:4;display:block;position:absolute;top:0;bottom:0;z-index:3;min-width:5vw;outline:0;box-sizing:border-box;overflow-y:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-side{z-index:2}.mat-drawer.mat-drawer-end{right:0;transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer{transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer.mat-drawer-end{left:0;right:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-opened:not(.mat-drawer-side),.mat-drawer.mat-drawer-opening:not(.mat-drawer-side){box-shadow:0 8px 10px -5px rgba(0,0,0,.2),0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12)}.mat-sidenav-fixed{position:fixed}"],
                 host: {
                     'class': 'mat-drawer-container mat-sidenav-container',
                 },
@@ -839,17 +814,14 @@ MatSidenavContainer.decorators = [
                 preserveWhitespaces: false,
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatSidenavContainer.ctorParameters = () => [];
 MatSidenavContainer.propDecorators = {
-    "_drawers": [{ type: ContentChildren, args: [MatSidenav,] },],
-    "_content": [{ type: ContentChild, args: [MatSidenavContent,] },],
+    '_drawers': [{ type: ContentChildren, args: [MatSidenav,] },],
+    '_content': [{ type: ContentChild, args: [MatSidenavContent,] },],
 };
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 class MatSidenavModule {
 }
@@ -881,18 +853,11 @@ MatSidenavModule.decorators = [
                 ],
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatSidenavModule.ctorParameters = () => [];
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 /**
  * Generated bundle index. Do not edit.
  */

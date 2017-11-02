@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
@@ -55,26 +55,14 @@ export declare class MatMenu implements AfterContentInit, MatMenuPanel, OnDestro
      * to style the containing menu from outside the component.
      * @param classes list of class names
      */
-    panelClass: string;
-    /**
-     * This method takes classes set on the host mat-menu element and applies them on the
-     * menu template that displays in the overlay container.  Otherwise, it's difficult
-     * to style the containing menu from outside the component.
-     * @deprecated Use `panelClass` instead.
-     */
     classList: string;
     /** Event emitted when the menu is closed. */
-    closed: EventEmitter<void | "click" | "keydown">;
-    /**
-     * Event emitted when the menu is closed.
-     * @deprecated Switch to `closed` instead
-     */
     close: EventEmitter<void | "click" | "keydown">;
     constructor(_elementRef: ElementRef, _ngZone: NgZone, _defaultOptions: MatMenuDefaultOptions);
     ngAfterContentInit(): void;
     ngOnDestroy(): void;
     /** Stream that emits whenever the hovered menu item changes. */
-    _hovered(): Observable<MatMenuItem>;
+    hover(): Observable<MatMenuItem>;
     /** Handle a keyboard event from the menu, delegating to the appropriate action. */
     _handleKeydown(event: KeyboardEvent): void;
     /**
@@ -82,11 +70,6 @@ export declare class MatMenu implements AfterContentInit, MatMenuPanel, OnDestro
      * to focus the first item when the menu is opened by the ENTER key.
      */
     focusFirstItem(): void;
-    /**
-     * Resets the active item in the menu. This is used when the menu is opened by mouse,
-     * allowing the user to start from the first option when pressing the down arrow.
-     */
-    resetActiveItem(): void;
     /**
      * It's necessary to set position-based classes to ensure the menu panel animation
      * folds out from the correct direction.

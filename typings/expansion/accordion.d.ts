@@ -1,12 +1,14 @@
-import { CdkAccordion } from '@angular/cdk/accordion';
-/** Workaround for https://github.com/angular/angular/issues/17849 */
-export declare const _CdkAccordion: typeof CdkAccordion;
 /** MatAccordion's display modes. */
 export declare type MatAccordionDisplayMode = 'default' | 'flat';
 /**
- * Directive for a Material Design Accordion.
+ * Directive whose purpose is to manage the expanded state of CdkAccordionItem children.
  */
-export declare class MatAccordion extends _CdkAccordion {
+export declare class CdkAccordion {
+    /** A readonly id value to use for unique selection coordination. */
+    readonly id: string;
+    /** Whether the accordion should allow multiple expanded accordion items simulateously. */
+    multi: boolean;
+    private _multi;
     /** Whether the expansion indicator should be hidden. */
     hideToggle: boolean;
     private _hideToggle;
@@ -19,4 +21,9 @@ export declare class MatAccordion extends _CdkAccordion {
      *     elevation.
      */
     displayMode: MatAccordionDisplayMode;
+}
+/**
+ * Directive for a Material Design Accordion.
+ */
+export declare class MatAccordion extends CdkAccordion {
 }

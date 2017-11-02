@@ -1,14 +1,13 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, ElementRef, Host, Input, NgModule, Optional, Renderer2, ViewEncapsulation, forwardRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, ElementRef, EventEmitter, Host, Injectable, Input, NgModule, Optional, Output, Renderer2, ViewEncapsulation, forwardRef } from '@angular/core';
 import { UNIQUE_SELECTION_DISPATCHER_PROVIDER, UniqueSelectionDispatcher } from '@angular/cdk/collections';
-import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion';
 import { A11yModule, FocusMonitor } from '@angular/cdk/a11y';
 import { __extends } from 'tslib';
 import * as tslib_1 from 'tslib';
@@ -17,26 +16,25 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 import { mixinDisabled } from '@angular/material/core';
 import { Subject } from 'rxjs/Subject';
 import { ENTER, SPACE } from '@angular/cdk/keycodes';
-import { filter } from 'rxjs/operators/filter';
+import { filter } from '@angular/cdk/rxjs';
 import { merge } from 'rxjs/observable/merge';
 import { Subscription } from 'rxjs/Subscription';
 
 /**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * Unique ID counter
  */
+var nextId = 0;
 /**
- * Workaround for https://github.com/angular/angular/issues/17849
+ * Directive whose purpose is to manage the expanded state of CdkAccordionItem children.
  */
-var _CdkAccordion = CdkAccordion;
-/**
- * Directive for a Material Design Accordion.
- */
-var MatAccordion = (function (_super) {
-    __extends(MatAccordion, _super);
-    function MatAccordion() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this._hideToggle = false;
+var CdkAccordion = (function () {
+    function CdkAccordion() {
+        /**
+         * A readonly id value to use for unique selection coordination.
+         */
+        this.id = "cdk-accordion-" + nextId++;
+        this._multi = false;
+        this._hideToggle = false;
         /**
          * The display mode used for all expansion panels in the accordion. Currently two display
          * modes exist:
@@ -45,23 +43,61 @@ var MatAccordion = (function (_super) {
          *  flat - no spacing is placed around expanded panels, showing all panels at the same
          *     elevation.
          */
-        _this.displayMode = 'default';
-        return _this;
+        this.displayMode = 'default';
     }
-    Object.defineProperty(MatAccordion.prototype, "hideToggle", {
-        get: /**
-         * Whether the expansion indicator should be hidden.
+    Object.defineProperty(CdkAccordion.prototype, "multi", {
+        /**
+         * Whether the accordion should allow multiple expanded accordion items simulateously.
          * @return {?}
          */
-        function () { return this._hideToggle; },
-        set: /**
-         * @param {?} show
+        get: function () { return this._multi; },
+        /**
+         * @param {?} multi
          * @return {?}
          */
-        function (show) { this._hideToggle = coerceBooleanProperty(show); },
+        set: function (multi) { this._multi = coerceBooleanProperty(multi); },
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(CdkAccordion.prototype, "hideToggle", {
+        /**
+         * Whether the expansion indicator should be hidden.
+         * @return {?}
+         */
+        get: function () { return this._hideToggle; },
+        /**
+         * @param {?} show
+         * @return {?}
+         */
+        set: function (show) { this._hideToggle = coerceBooleanProperty(show); },
+        enumerable: true,
+        configurable: true
+    });
+    CdkAccordion.decorators = [
+        { type: Directive, args: [{
+                    selector: 'cdk-accordion, [cdk-accordion]',
+                    exportAs: 'cdkAccordion',
+                },] },
+    ];
+    /**
+     * @nocollapse
+     */
+    CdkAccordion.ctorParameters = function () { return []; };
+    CdkAccordion.propDecorators = {
+        'multi': [{ type: Input },],
+        'hideToggle': [{ type: Input },],
+        'displayMode': [{ type: Input },],
+    };
+    return CdkAccordion;
+}());
+/**
+ * Directive for a Material Design Accordion.
+ */
+var MatAccordion = (function (_super) {
+    __extends(MatAccordion, _super);
+    function MatAccordion() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
     MatAccordion.decorators = [
         { type: Directive, args: [{
                     selector: 'mat-accordion',
@@ -71,61 +107,178 @@ var MatAccordion = (function (_super) {
                     }
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatAccordion.ctorParameters = function () { return []; };
-    MatAccordion.propDecorators = {
-        "hideToggle": [{ type: Input },],
-        "displayMode": [{ type: Input },],
-    };
     return MatAccordion;
-}(_CdkAccordion));
+}(CdkAccordion));
 
 /**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * Used to generate unique ID for each expansion panel.
  */
+var nextId$1 = 0;
 /**
- * Workaround for https://github.com/angular/angular/issues/17849
+ * An abstract class to be extended and decorated as a component.  Sets up all
+ * events and attributes needed to be managed by a CdkAccordion parent.
  */
-var _CdkAccordionItem = CdkAccordionItem;
-/**
- * Time and timing curve for expansion panel animations.
- */
-var EXPANSION_PANEL_ANIMATION_TIMING = '225ms cubic-bezier(0.4,0.0,0.2,1)';
+var AccordionItem = (function () {
+    /**
+     * @param {?} accordion
+     * @param {?} _changeDetectorRef
+     * @param {?} _expansionDispatcher
+     */
+    function AccordionItem(accordion, _changeDetectorRef, _expansionDispatcher) {
+        var _this = this;
+        this.accordion = accordion;
+        this._changeDetectorRef = _changeDetectorRef;
+        this._expansionDispatcher = _expansionDispatcher;
+        /**
+         * Event emitted every time the AccordionItem is closed.
+         */
+        this.closed = new EventEmitter();
+        /**
+         * Event emitted every time the AccordionItem is opened.
+         */
+        this.opened = new EventEmitter();
+        /**
+         * Event emitted when the AccordionItem is destroyed.
+         */
+        this.destroyed = new EventEmitter();
+        /**
+         * The unique AccordionItem id.
+         */
+        this.id = "cdk-accordion-child-" + nextId$1++;
+        /**
+         * Unregister function for _expansionDispatcher *
+         */
+        this._removeUniqueSelectionListener = function () { };
+        this._removeUniqueSelectionListener =
+            _expansionDispatcher.listen(function (id, accordionId) {
+                if (_this.accordion && !_this.accordion.multi &&
+                    _this.accordion.id === accordionId && _this.id !== id) {
+                    _this.expanded = false;
+                }
+            });
+    }
+    Object.defineProperty(AccordionItem.prototype, "expanded", {
+        /**
+         * Whether the AccordionItem is expanded.
+         * @return {?}
+         */
+        get: function () { return this._expanded; },
+        /**
+         * @param {?} expanded
+         * @return {?}
+         */
+        set: function (expanded) {
+            // Only emit events and update the internal value if the value changes.
+            if (this._expanded !== expanded) {
+                this._expanded = expanded;
+                if (expanded) {
+                    this.opened.emit();
+                    /**
+                     * In the unique selection dispatcher, the id parameter is the id of the CdkAccordionItem,
+                     * the name value is the id of the accordion.
+                     */
+                    var accordionId = this.accordion ? this.accordion.id : this.id;
+                    this._expansionDispatcher.notify(this.id, accordionId);
+                }
+                else {
+                    this.closed.emit();
+                }
+                // Ensures that the animation will run when the value is set outside of an `@Input`.
+                // This includes cases like the open, close and toggle methods.
+                this._changeDetectorRef.markForCheck();
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /**
+     * Emits an event for the accordion item being destroyed.
+     * @return {?}
+     */
+    AccordionItem.prototype.ngOnDestroy = function () {
+        this.destroyed.emit();
+        this._removeUniqueSelectionListener();
+    };
+    /**
+     * Toggles the expanded state of the accordion item.
+     * @return {?}
+     */
+    AccordionItem.prototype.toggle = function () {
+        this.expanded = !this.expanded;
+    };
+    /**
+     * Sets the expanded state of the accordion item to false.
+     * @return {?}
+     */
+    AccordionItem.prototype.close = function () {
+        this.expanded = false;
+    };
+    /**
+     * Sets the expanded state of the accordion item to true.
+     * @return {?}
+     */
+    AccordionItem.prototype.open = function () {
+        this.expanded = true;
+    };
+    AccordionItem.decorators = [
+        { type: Injectable },
+    ];
+    /**
+     * @nocollapse
+     */
+    AccordionItem.ctorParameters = function () { return [
+        { type: CdkAccordion, decorators: [{ type: Optional },] },
+        { type: ChangeDetectorRef, },
+        { type: UniqueSelectionDispatcher, },
+    ]; };
+    AccordionItem.propDecorators = {
+        'closed': [{ type: Output },],
+        'opened': [{ type: Output },],
+        'destroyed': [{ type: Output },],
+        'expanded': [{ type: Input },],
+    };
+    return AccordionItem;
+}());
+
 /**
  * \@docs-private
  */
 var MatExpansionPanelBase = (function (_super) {
     __extends(MatExpansionPanelBase, _super);
+    /**
+     * @param {?} accordion
+     * @param {?} _changeDetectorRef
+     * @param {?} _uniqueSelectionDispatcher
+     */
     function MatExpansionPanelBase(accordion, _changeDetectorRef, _uniqueSelectionDispatcher) {
         return _super.call(this, accordion, _changeDetectorRef, _uniqueSelectionDispatcher) || this;
     }
-    MatExpansionPanelBase.decorators = [
-        { type: Component, args: [{
-                    template: '',encapsulation: ViewEncapsulation.None,
-                    preserveWhitespaces: false,
-                    changeDetection: ChangeDetectionStrategy.OnPush,
-                },] },
-    ];
-    /** @nocollapse */
-    MatExpansionPanelBase.ctorParameters = function () { return [
-        { type: MatAccordion, },
-        { type: ChangeDetectorRef, },
-        { type: UniqueSelectionDispatcher, },
-    ]; };
     return MatExpansionPanelBase;
-}(_CdkAccordionItem));
+}(AccordionItem));
 var _MatExpansionPanelMixinBase = mixinDisabled(MatExpansionPanelBase);
+/**
+ * Time and timing curve for expansion panel animations.
+ */
+var EXPANSION_PANEL_ANIMATION_TIMING = '225ms cubic-bezier(0.4,0.0,0.2,1)';
 /**
  * <mat-expansion-panel> component.
  *
  * This component can be used as a single element to show expandable content, or as one of
- * multiple children of an element with the MdAccordion directive attached.
+ * multiple children of an element with the CdkAccordion directive attached.
  *
  * Please refer to README.md for examples on how to use it.
  */
 var MatExpansionPanel = (function (_super) {
     __extends(MatExpansionPanel, _super);
+    /**
+     * @param {?} accordion
+     * @param {?} _changeDetectorRef
+     * @param {?} _uniqueSelectionDispatcher
+     */
     function MatExpansionPanel(accordion, _changeDetectorRef, _uniqueSelectionDispatcher) {
         var _this = _super.call(this, accordion, _changeDetectorRef, _uniqueSelectionDispatcher) || this;
         /**
@@ -139,70 +292,48 @@ var MatExpansionPanel = (function (_super) {
         _this.accordion = accordion;
         return _this;
     }
-    /** Whether the expansion indicator should be hidden. */
     /**
      * Whether the expansion indicator should be hidden.
      * @return {?}
      */
-    MatExpansionPanel.prototype._getHideToggle = /**
-     * Whether the expansion indicator should be hidden.
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanel.prototype._getHideToggle = function () {
         if (this.accordion) {
             return this.accordion.hideToggle;
         }
         return this.hideToggle;
     };
-    /** Determines whether the expansion panel should have spacing between it and its siblings. */
     /**
      * Determines whether the expansion panel should have spacing between it and its siblings.
      * @return {?}
      */
-    MatExpansionPanel.prototype._hasSpacing = /**
-     * Determines whether the expansion panel should have spacing between it and its siblings.
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanel.prototype._hasSpacing = function () {
         if (this.accordion) {
             return (this.expanded ? this.accordion.displayMode : this._getExpandedState()) === 'default';
         }
         return false;
     };
-    /** Gets the expanded state string. */
     /**
      * Gets the expanded state string.
      * @return {?}
      */
-    MatExpansionPanel.prototype._getExpandedState = /**
-     * Gets the expanded state string.
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanel.prototype._getExpandedState = function () {
         return this.expanded ? 'expanded' : 'collapsed';
     };
     /**
      * @param {?} changes
      * @return {?}
      */
-    MatExpansionPanel.prototype.ngOnChanges = /**
-     * @param {?} changes
-     * @return {?}
-     */
-    function (changes) {
+    MatExpansionPanel.prototype.ngOnChanges = function (changes) {
         this._inputChanges.next(changes);
     };
     /**
      * @return {?}
      */
-    MatExpansionPanel.prototype.ngOnDestroy = /**
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanel.prototype.ngOnDestroy = function () {
         this._inputChanges.complete();
     };
     MatExpansionPanel.decorators = [
-        { type: Component, args: [{styles: [".mat-expansion-panel{transition:box-shadow 280ms cubic-bezier(.4,0,.2,1);box-sizing:content-box;display:block;margin:0;transition:margin 225ms cubic-bezier(.4,0,.2,1)}.mat-expansion-panel:not([class*=mat-elevation-z]){box-shadow:0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12)}.mat-expanded .mat-expansion-panel-content{overflow:visible}.mat-expansion-panel-content,.mat-expansion-panel-content.ng-animating{overflow:hidden}.mat-expansion-panel-body{padding:0 24px 16px}.mat-expansion-panel-spacing{margin:16px 0}.mat-accordion .mat-expansion-panel-spacing:first-child{margin-top:0}.mat-accordion .mat-expansion-panel-spacing:last-child{margin-bottom:0}.mat-action-row{border-top-style:solid;border-top-width:1px;display:flex;flex-direction:row;justify-content:flex-end;padding:16px 8px 16px 24px}.mat-action-row button.mat-button{margin-left:8px}[dir=rtl] .mat-action-row button.mat-button{margin-left:0;margin-right:8px}"],
+        { type: Component, args: [{styles: [".mat-expansion-panel{transition:box-shadow 280ms cubic-bezier(.4,0,.2,1);box-sizing:content-box;display:block;margin:0;transition:margin 225ms cubic-bezier(.4,0,.2,1)}.mat-expansion-panel:not([class*=mat-elevation-z]){box-shadow:0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12)}.mat-expansion-panel-content{overflow:hidden}.mat-expansion-panel-body{margin:0 24px 16px;overflow:auto}.mat-expansion-panel-spacing{margin:16px 0}.mat-accordion .mat-expansion-panel-spacing:first-child{margin-top:0}.mat-accordion .mat-expansion-panel-spacing:last-child{margin-bottom:0}.mat-action-row{border-top-style:solid;border-top-width:1px;display:flex;flex-direction:row;justify-content:flex-end;padding:16px 8px 16px 24px}.mat-action-row button.mat-button{margin-left:8px}[dir=rtl] .mat-action-row button.mat-button{margin-left:0;margin-right:8px}"],
                     selector: 'mat-expansion-panel',
                     exportAs: 'matExpansionPanel',
                     template: "<ng-content select=\"mat-expansion-panel-header\"></ng-content><div [class.mat-expanded]=\"expanded\" class=\"mat-expansion-panel-content\" [@bodyExpansion]=\"_getExpandedState()\" [id]=\"id\"><div class=\"mat-expansion-panel-body\"><ng-content></ng-content></div><ng-content select=\"mat-action-row\"></ng-content></div>",
@@ -216,7 +347,7 @@ var MatExpansionPanel = (function (_super) {
                         '[class.mat-expansion-panel-spacing]': '_hasSpacing()',
                     },
                     providers: [
-                        { provide: _MatExpansionPanelMixinBase, useExisting: forwardRef(function () { return MatExpansionPanel; }) }
+                        { provide: AccordionItem, useExisting: forwardRef(function () { return MatExpansionPanel; }) }
                     ],
                     animations: [
                         trigger('bodyExpansion', [
@@ -227,14 +358,16 @@ var MatExpansionPanel = (function (_super) {
                     ],
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatExpansionPanel.ctorParameters = function () { return [
         { type: MatAccordion, decorators: [{ type: Optional }, { type: Host },] },
         { type: ChangeDetectorRef, },
         { type: UniqueSelectionDispatcher, },
     ]; };
     MatExpansionPanel.propDecorators = {
-        "hideToggle": [{ type: Input },],
+        'hideToggle': [{ type: Input },],
     };
     return MatExpansionPanel;
 }(_MatExpansionPanelMixinBase));
@@ -249,15 +382,12 @@ var MatExpansionPanelActionRow = (function () {
                     }
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatExpansionPanelActionRow.ctorParameters = function () { return []; };
     return MatExpansionPanelActionRow;
 }());
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 /**
  * <mat-expansion-panel-header> component.
@@ -267,6 +397,13 @@ var MatExpansionPanelActionRow = (function () {
  * Please refer to README.md for examples on how to use it.
  */
 var MatExpansionPanelHeader = (function () {
+    /**
+     * @param {?} renderer
+     * @param {?} panel
+     * @param {?} _element
+     * @param {?} _focusMonitor
+     * @param {?} _changeDetectorRef
+     */
     function MatExpansionPanelHeader(renderer, panel, _element, _focusMonitor, _changeDetectorRef) {
         var _this = this;
         this.panel = panel;
@@ -276,84 +413,53 @@ var MatExpansionPanelHeader = (function () {
         this._parentChangeSubscription = Subscription.EMPTY;
         // Since the toggle state depends on an @Input on the panel, we
         // need to  subscribe and trigger change detection manually.
-        this._parentChangeSubscription = merge(panel.opened, panel.closed, panel._inputChanges.pipe(filter(function (changes) { return !!(changes["hideToggle"] || changes["disabled"]); })))
+        this._parentChangeSubscription = merge(panel.opened, panel.closed, filter.call(panel._inputChanges, function (changes) { return !!(changes.hideToggle || changes.disabled); }))
             .subscribe(function () { return _this._changeDetectorRef.markForCheck(); });
         _focusMonitor.monitor(_element.nativeElement, renderer, false);
     }
-    /** Toggles the expanded state of the panel. */
     /**
      * Toggles the expanded state of the panel.
      * @return {?}
      */
-    MatExpansionPanelHeader.prototype._toggle = /**
-     * Toggles the expanded state of the panel.
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanelHeader.prototype._toggle = function () {
         if (!this.panel.disabled) {
             this.panel.toggle();
         }
     };
-    /** Gets whether the panel is expanded. */
     /**
      * Gets whether the panel is expanded.
      * @return {?}
      */
-    MatExpansionPanelHeader.prototype._isExpanded = /**
-     * Gets whether the panel is expanded.
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanelHeader.prototype._isExpanded = function () {
         return this.panel.expanded;
     };
-    /** Gets the expanded state string of the panel. */
     /**
      * Gets the expanded state string of the panel.
      * @return {?}
      */
-    MatExpansionPanelHeader.prototype._getExpandedState = /**
-     * Gets the expanded state string of the panel.
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanelHeader.prototype._getExpandedState = function () {
         return this.panel._getExpandedState();
     };
-    /** Gets the panel id. */
     /**
      * Gets the panel id.
      * @return {?}
      */
-    MatExpansionPanelHeader.prototype._getPanelId = /**
-     * Gets the panel id.
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanelHeader.prototype._getPanelId = function () {
         return this.panel.id;
     };
-    /** Gets whether the expand indicator should be shown. */
     /**
      * Gets whether the expand indicator should be shown.
      * @return {?}
      */
-    MatExpansionPanelHeader.prototype._showToggle = /**
-     * Gets whether the expand indicator should be shown.
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanelHeader.prototype._showToggle = function () {
         return !this.panel.hideToggle && !this.panel.disabled;
     };
-    /** Handle keyup event calling to toggle() if appropriate. */
     /**
      * Handle keyup event calling to toggle() if appropriate.
      * @param {?} event
      * @return {?}
      */
-    MatExpansionPanelHeader.prototype._keyup = /**
-     * Handle keyup event calling to toggle() if appropriate.
-     * @param {?} event
-     * @return {?}
-     */
-    function (event) {
+    MatExpansionPanelHeader.prototype._keyup = function (event) {
         switch (event.keyCode) {
             // Toggle for space and enter keys.
             case SPACE:
@@ -368,10 +474,7 @@ var MatExpansionPanelHeader = (function () {
     /**
      * @return {?}
      */
-    MatExpansionPanelHeader.prototype.ngOnDestroy = /**
-     * @return {?}
-     */
-    function () {
+    MatExpansionPanelHeader.prototype.ngOnDestroy = function () {
         this._parentChangeSubscription.unsubscribe();
         this._focusMonitor.stopMonitoring(this._element.nativeElement);
     };
@@ -416,7 +519,9 @@ var MatExpansionPanelHeader = (function () {
                     ],
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatExpansionPanelHeader.ctorParameters = function () { return [
         { type: Renderer2, },
         { type: MatExpansionPanel, decorators: [{ type: Host },] },
@@ -425,8 +530,8 @@ var MatExpansionPanelHeader = (function () {
         { type: ChangeDetectorRef, },
     ]; };
     MatExpansionPanelHeader.propDecorators = {
-        "expandedHeight": [{ type: Input },],
-        "collapsedHeight": [{ type: Input },],
+        'expandedHeight': [{ type: Input },],
+        'collapsedHeight': [{ type: Input },],
     };
     return MatExpansionPanelHeader;
 }());
@@ -446,7 +551,9 @@ var MatExpansionPanelDescription = (function () {
                     }
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatExpansionPanelDescription.ctorParameters = function () { return []; };
     return MatExpansionPanelDescription;
 }());
@@ -466,23 +573,21 @@ var MatExpansionPanelTitle = (function () {
                     }
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatExpansionPanelTitle.ctorParameters = function () { return []; };
     return MatExpansionPanelTitle;
 }());
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 var MatExpansionModule = (function () {
     function MatExpansionModule() {
     }
     MatExpansionModule.decorators = [
         { type: NgModule, args: [{
-                    imports: [CommonModule, A11yModule, CdkAccordionModule],
+                    imports: [CommonModule, A11yModule],
                     exports: [
+                        CdkAccordion,
                         MatAccordion,
                         MatExpansionPanel,
                         MatExpansionPanelActionRow,
@@ -491,7 +596,7 @@ var MatExpansionModule = (function () {
                         MatExpansionPanelDescription
                     ],
                     declarations: [
-                        MatExpansionPanelBase,
+                        CdkAccordion,
                         MatAccordion,
                         MatExpansionPanel,
                         MatExpansionPanelActionRow,
@@ -502,23 +607,16 @@ var MatExpansionModule = (function () {
                     providers: [UNIQUE_SELECTION_DISPATCHER_PROVIDER]
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatExpansionModule.ctorParameters = function () { return []; };
     return MatExpansionModule;
 }());
 
 /**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-/**
  * Generated bundle index. Do not edit.
  */
 
-export { MatExpansionModule, _CdkAccordion, MatAccordion, _CdkAccordionItem, EXPANSION_PANEL_ANIMATION_TIMING, MatExpansionPanelBase, _MatExpansionPanelMixinBase, MatExpansionPanel, MatExpansionPanelActionRow, MatExpansionPanelHeader, MatExpansionPanelDescription, MatExpansionPanelTitle };
+export { CdkAccordion, MatAccordion, AccordionItem, MatExpansionPanel, MatExpansionPanelActionRow, MatExpansionPanelHeader, MatExpansionPanelDescription, MatExpansionPanelTitle, MatExpansionModule, EXPANSION_PANEL_ANIMATION_TIMING as ɵc13, MatExpansionPanelBase as ɵa13, _MatExpansionPanelMixinBase as ɵb13 };
 //# sourceMappingURL=expansion.es5.js.map

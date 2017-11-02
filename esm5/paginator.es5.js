@@ -1,21 +1,16 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injectable, Input, NgModule, Optional, Output, SkipSelf, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injectable, Input, NgModule, Output, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject } from 'rxjs/Subject';
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 /**
  * To modify the labels and text displayed, create a new instance of MatPaginatorIntl and
@@ -48,9 +43,9 @@ var MatPaginatorIntl = (function () {
                 return "0 of " + length;
             }
             length = Math.max(length, 0);
-            var /** @type {?} */ startIndex = page * pageSize;
+            var startIndex = page * pageSize;
             // If the start index exceeds the list length, do not try and fix the end index to the end.
-            var /** @type {?} */ endIndex = startIndex < length ?
+            var endIndex = startIndex < length ?
                 Math.min(startIndex + pageSize, length) :
                 startIndex + pageSize;
             return startIndex + 1 + " - " + endIndex + " of " + length;
@@ -59,32 +54,12 @@ var MatPaginatorIntl = (function () {
     MatPaginatorIntl.decorators = [
         { type: Injectable },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatPaginatorIntl.ctorParameters = function () { return []; };
     return MatPaginatorIntl;
 }());
-/**
- * \@docs-private
- * @param {?} parentIntl
- * @return {?}
- */
-function MAT_PAGINATOR_INTL_PROVIDER_FACTORY(parentIntl) {
-    return parentIntl || new MatPaginatorIntl();
-}
-/**
- * \@docs-private
- */
-var MAT_PAGINATOR_INTL_PROVIDER = {
-    // If there is already an MatPaginatorIntl available, use that. Otherwise, provide a new one.
-    provide: MatPaginatorIntl,
-    deps: [[new Optional(), new SkipSelf(), MatPaginatorIntl]],
-    useFactory: MAT_PAGINATOR_INTL_PROVIDER_FACTORY
-};
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 /**
  * The default page size if there is no page size and there are no provided page size options.
@@ -105,6 +80,10 @@ var PageEvent = (function () {
  * navigational button to go to the previous or next page.
  */
 var MatPaginator = (function () {
+    /**
+     * @param {?} _intl
+     * @param {?} _changeDetectorRef
+     */
     function MatPaginator(_intl, _changeDetectorRef) {
         var _this = this;
         this._intl = _intl;
@@ -119,16 +98,16 @@ var MatPaginator = (function () {
         this._intlChanges = _intl.changes.subscribe(function () { return _this._changeDetectorRef.markForCheck(); });
     }
     Object.defineProperty(MatPaginator.prototype, "pageIndex", {
-        get: /**
+        /**
          * The zero-based page index of the displayed list of items. Defaulted to 0.
          * @return {?}
          */
-        function () { return this._pageIndex; },
-        set: /**
+        get: function () { return this._pageIndex; },
+        /**
          * @param {?} pageIndex
          * @return {?}
          */
-        function (pageIndex) {
+        set: function (pageIndex) {
             this._pageIndex = pageIndex;
             this._changeDetectorRef.markForCheck();
         },
@@ -136,16 +115,16 @@ var MatPaginator = (function () {
         configurable: true
     });
     Object.defineProperty(MatPaginator.prototype, "length", {
-        get: /**
+        /**
          * The length of the total number of items that are being paginated. Defaulted to 0.
          * @return {?}
          */
-        function () { return this._length; },
-        set: /**
+        get: function () { return this._length; },
+        /**
          * @param {?} length
          * @return {?}
          */
-        function (length) {
+        set: function (length) {
             this._length = length;
             this._changeDetectorRef.markForCheck();
         },
@@ -153,16 +132,16 @@ var MatPaginator = (function () {
         configurable: true
     });
     Object.defineProperty(MatPaginator.prototype, "pageSize", {
-        get: /**
+        /**
          * Number of items to display on a page. By default set to 50.
          * @return {?}
          */
-        function () { return this._pageSize; },
-        set: /**
+        get: function () { return this._pageSize; },
+        /**
          * @param {?} pageSize
          * @return {?}
          */
-        function (pageSize) {
+        set: function (pageSize) {
             this._pageSize = pageSize;
             this._updateDisplayedPageSizeOptions();
         },
@@ -170,16 +149,16 @@ var MatPaginator = (function () {
         configurable: true
     });
     Object.defineProperty(MatPaginator.prototype, "pageSizeOptions", {
-        get: /**
+        /**
          * The set of provided page size options to display to the user.
          * @return {?}
          */
-        function () { return this._pageSizeOptions; },
-        set: /**
+        get: function () { return this._pageSizeOptions; },
+        /**
          * @param {?} pageSizeOptions
          * @return {?}
          */
-        function (pageSizeOptions) {
+        set: function (pageSizeOptions) {
             this._pageSizeOptions = pageSizeOptions;
             this._updateDisplayedPageSizeOptions();
         },
@@ -189,76 +168,50 @@ var MatPaginator = (function () {
     /**
      * @return {?}
      */
-    MatPaginator.prototype.ngOnInit = /**
-     * @return {?}
-     */
-    function () {
+    MatPaginator.prototype.ngOnInit = function () {
         this._initialized = true;
         this._updateDisplayedPageSizeOptions();
     };
     /**
      * @return {?}
      */
-    MatPaginator.prototype.ngOnDestroy = /**
-     * @return {?}
-     */
-    function () {
+    MatPaginator.prototype.ngOnDestroy = function () {
         this._intlChanges.unsubscribe();
     };
-    /** Advances to the next page if it exists. */
     /**
      * Advances to the next page if it exists.
      * @return {?}
      */
-    MatPaginator.prototype.nextPage = /**
-     * Advances to the next page if it exists.
-     * @return {?}
-     */
-    function () {
+    MatPaginator.prototype.nextPage = function () {
         if (!this.hasNextPage()) {
             return;
         }
         this.pageIndex++;
         this._emitPageEvent();
     };
-    /** Move back to the previous page if it exists. */
     /**
      * Move back to the previous page if it exists.
      * @return {?}
      */
-    MatPaginator.prototype.previousPage = /**
-     * Move back to the previous page if it exists.
-     * @return {?}
-     */
-    function () {
+    MatPaginator.prototype.previousPage = function () {
         if (!this.hasPreviousPage()) {
             return;
         }
         this.pageIndex--;
         this._emitPageEvent();
     };
-    /** Whether there is a previous page. */
     /**
      * Whether there is a previous page.
      * @return {?}
      */
-    MatPaginator.prototype.hasPreviousPage = /**
-     * Whether there is a previous page.
-     * @return {?}
-     */
-    function () {
+    MatPaginator.prototype.hasPreviousPage = function () {
         return this.pageIndex >= 1 && this.pageSize != 0;
     };
-    /** Whether there is a next page. */
     /**
      * Whether there is a next page.
      * @return {?}
      */
-    MatPaginator.prototype.hasNextPage = /**
-     * Whether there is a next page.
-     * @return {?}
-     */
-    function () {
+    MatPaginator.prototype.hasNextPage = function () {
         var /** @type {?} */ numberOfPages = Math.ceil(this.length / this.pageSize) - 1;
         return this.pageIndex < numberOfPages && this.pageSize != 0;
     };
@@ -269,28 +222,10 @@ var MatPaginator = (function () {
      * For example, if the page size is 10 and on the second page (items indexed 10-19) then
      * switching so that the page size is 5 will set the third page as the current page so
      * that the 10th item will still be displayed.
-     */
-    /**
-     * Changes the page size so that the first item displayed on the page will still be
-     * displayed using the new page size.
-     *
-     * For example, if the page size is 10 and on the second page (items indexed 10-19) then
-     * switching so that the page size is 5 will set the third page as the current page so
-     * that the 10th item will still be displayed.
      * @param {?} pageSize
      * @return {?}
      */
-    MatPaginator.prototype._changePageSize = /**
-     * Changes the page size so that the first item displayed on the page will still be
-     * displayed using the new page size.
-     *
-     * For example, if the page size is 10 and on the second page (items indexed 10-19) then
-     * switching so that the page size is 5 will set the third page as the current page so
-     * that the 10th item will still be displayed.
-     * @param {?} pageSize
-     * @return {?}
-     */
-    function (pageSize) {
+    MatPaginator.prototype._changePageSize = function (pageSize) {
         // Current page needs to be updated to reflect the new page size. Navigate to the page
         // containing the previous page's first item.
         var /** @type {?} */ startIndex = this.pageIndex * this.pageSize;
@@ -303,12 +238,7 @@ var MatPaginator = (function () {
      * the page size is an option and that the list is sorted.
      * @return {?}
      */
-    MatPaginator.prototype._updateDisplayedPageSizeOptions = /**
-     * Updates the list of page size options to display to the user. Includes making sure that
-     * the page size is an option and that the list is sorted.
-     * @return {?}
-     */
-    function () {
+    MatPaginator.prototype._updateDisplayedPageSizeOptions = function () {
         if (!this._initialized) {
             return;
         }
@@ -330,11 +260,7 @@ var MatPaginator = (function () {
      * Emits an event notifying that a change of the paginator's properties has been triggered.
      * @return {?}
      */
-    MatPaginator.prototype._emitPageEvent = /**
-     * Emits an event notifying that a change of the paginator's properties has been triggered.
-     * @return {?}
-     */
-    function () {
+    MatPaginator.prototype._emitPageEvent = function () {
         this.page.next({
             pageIndex: this.pageIndex,
             pageSize: this.pageSize,
@@ -344,8 +270,8 @@ var MatPaginator = (function () {
     MatPaginator.decorators = [
         { type: Component, args: [{selector: 'mat-paginator',
                     exportAs: 'matPaginator',
-                    template: "<div class=\"mat-paginator-container\"><div class=\"mat-paginator-page-size\"><div class=\"mat-paginator-page-size-label\">{{_intl.itemsPerPageLabel}}</div><mat-form-field *ngIf=\"_displayedPageSizeOptions.length > 1\" class=\"mat-paginator-page-size-select\"><mat-select [value]=\"pageSize\" [aria-label]=\"_intl.itemsPerPageLabel\" (change)=\"_changePageSize($event.value)\"><mat-option *ngFor=\"let pageSizeOption of _displayedPageSizeOptions\" [value]=\"pageSizeOption\">{{pageSizeOption}}</mat-option></mat-select></mat-form-field><div *ngIf=\"_displayedPageSizeOptions.length <= 1\">{{pageSize}}</div></div><div class=\"mat-paginator-range-actions\"><div class=\"mat-paginator-range-label\">{{_intl.getRangeLabel(pageIndex, pageSize, length)}}</div><button mat-icon-button type=\"button\" class=\"mat-paginator-navigation-previous\" (click)=\"previousPage()\" [attr.aria-label]=\"_intl.previousPageLabel\" [matTooltip]=\"_intl.previousPageLabel\" [matTooltipPosition]=\"'above'\" [disabled]=\"!hasPreviousPage()\"><div class=\"mat-paginator-increment\"></div></button> <button mat-icon-button type=\"button\" class=\"mat-paginator-navigation-next\" (click)=\"nextPage()\" [attr.aria-label]=\"_intl.nextPageLabel\" [matTooltip]=\"_intl.nextPageLabel\" [matTooltipPosition]=\"'above'\" [disabled]=\"!hasNextPage()\"><div class=\"mat-paginator-decrement\"></div></button></div></div>",
-                    styles: [".mat-paginator-container{display:flex;align-items:center;justify-content:flex-end;min-height:56px;padding:0 8px;flex-wrap:wrap-reverse}.mat-paginator-page-size{display:flex;align-items:baseline;margin-right:8px}.mat-paginator-page-size-label{margin:0 4px}.mat-paginator-page-size-select{margin:6px 4px 0 4px;width:56px}.mat-paginator-range-label{margin:0 32px 0 24px}.mat-paginator-increment-button+.mat-paginator-increment-button{margin:0 0 0 8px}[dir=rtl] .mat-paginator-increment-button+.mat-paginator-increment-button{margin:0 8px 0 0}.mat-paginator-decrement,.mat-paginator-increment{width:8px;height:8px}.mat-paginator-decrement,[dir=rtl] .mat-paginator-increment{transform:rotate(45deg)}.mat-paginator-increment,[dir=rtl] .mat-paginator-decrement{transform:rotate(225deg)}.mat-paginator-decrement{margin-left:12px}[dir=rtl] .mat-paginator-decrement{margin-right:12px}.mat-paginator-increment{margin-left:16px}[dir=rtl] .mat-paginator-increment{margin-right:16px}.mat-paginator-range-actions{display:flex;align-items:center;min-height:48px}"],
+                    template: "<div class=\"mat-paginator-page-size\"><div class=\"mat-paginator-page-size-label\">{{_intl.itemsPerPageLabel}}</div><mat-form-field *ngIf=\"_displayedPageSizeOptions.length > 1\" class=\"mat-paginator-page-size-select\"><mat-select [value]=\"pageSize\" [aria-label]=\"_intl.itemsPerPageLabel\" (change)=\"_changePageSize($event.value)\"><mat-option *ngFor=\"let pageSizeOption of _displayedPageSizeOptions\" [value]=\"pageSizeOption\">{{pageSizeOption}}</mat-option></mat-select></mat-form-field><div *ngIf=\"_displayedPageSizeOptions.length <= 1\">{{pageSize}}</div></div><div class=\"mat-paginator-range-label\">{{_intl.getRangeLabel(pageIndex, pageSize, length)}}</div><button mat-icon-button type=\"button\" class=\"mat-paginator-navigation-previous\" (click)=\"previousPage()\" [attr.aria-label]=\"_intl.previousPageLabel\" [matTooltip]=\"_intl.previousPageLabel\" [matTooltipPosition]=\"'above'\" [disabled]=\"!hasPreviousPage()\"><div class=\"mat-paginator-increment\"></div></button> <button mat-icon-button type=\"button\" class=\"mat-paginator-navigation-next\" (click)=\"nextPage()\" [attr.aria-label]=\"_intl.nextPageLabel\" [matTooltip]=\"_intl.nextPageLabel\" [matTooltipPosition]=\"'above'\" [disabled]=\"!hasNextPage()\"><div class=\"mat-paginator-decrement\"></div></button>",
+                    styles: [".mat-paginator{display:flex;align-items:center;justify-content:flex-end;min-height:56px;padding:0 8px}.mat-paginator-page-size{display:flex;align-items:center}.mat-paginator-page-size-label{margin:0 4px}.mat-paginator-page-size-select{margin:0 4px;width:56px}.mat-paginator-range-label{margin:0 32px}.mat-paginator-increment-button+.mat-paginator-increment-button{margin:0 0 0 8px}[dir=rtl] .mat-paginator-increment-button+.mat-paginator-increment-button{margin:0 8px 0 0}.mat-paginator-decrement,.mat-paginator-increment{width:8px;height:8px}.mat-paginator-decrement,[dir=rtl] .mat-paginator-increment{transform:rotate(45deg)}.mat-paginator-increment,[dir=rtl] .mat-paginator-decrement{transform:rotate(225deg)}.mat-paginator-decrement{margin-left:12px}[dir=rtl] .mat-paginator-decrement{margin-right:12px}.mat-paginator-increment{margin-left:16px}[dir=rtl] .mat-paginator-increment{margin-right:16px}"],
                     host: {
                         'class': 'mat-paginator',
                     },
@@ -354,25 +280,22 @@ var MatPaginator = (function () {
                     preserveWhitespaces: false,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatPaginator.ctorParameters = function () { return [
         { type: MatPaginatorIntl, },
         { type: ChangeDetectorRef, },
     ]; };
     MatPaginator.propDecorators = {
-        "pageIndex": [{ type: Input },],
-        "length": [{ type: Input },],
-        "pageSize": [{ type: Input },],
-        "pageSizeOptions": [{ type: Input },],
-        "page": [{ type: Output },],
+        'pageIndex': [{ type: Input },],
+        'length': [{ type: Input },],
+        'pageSize': [{ type: Input },],
+        'pageSizeOptions': [{ type: Input },],
+        'page': [{ type: Output },],
     };
     return MatPaginator;
 }());
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 var MatPaginatorModule = (function () {
     function MatPaginatorModule() {
@@ -387,26 +310,19 @@ var MatPaginatorModule = (function () {
                     ],
                     exports: [MatPaginator],
                     declarations: [MatPaginator],
-                    providers: [MAT_PAGINATOR_INTL_PROVIDER],
+                    providers: [MatPaginatorIntl],
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatPaginatorModule.ctorParameters = function () { return []; };
     return MatPaginatorModule;
 }());
 
 /**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-/**
  * Generated bundle index. Do not edit.
  */
 
-export { MatPaginatorModule, PageEvent, MatPaginator, MatPaginatorIntl, MAT_PAGINATOR_INTL_PROVIDER_FACTORY, MAT_PAGINATOR_INTL_PROVIDER };
+export { MatPaginatorModule, PageEvent, MatPaginator, MatPaginatorIntl };
 //# sourceMappingURL=paginator.es5.js.map

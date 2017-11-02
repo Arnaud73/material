@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
@@ -16,10 +16,6 @@ import * as tslib_1 from 'tslib';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 // Increasing integer for generating unique ids for slide-toggle components.
 var nextUniqueId = 0;
 var MAT_SLIDE_TOGGLE_VALUE_ACCESSOR = {
@@ -39,6 +35,10 @@ var MatSlideToggleChange = (function () {
  * \@docs-private
  */
 var MatSlideToggleBase = (function () {
+    /**
+     * @param {?} _renderer
+     * @param {?} _elementRef
+     */
     function MatSlideToggleBase(_renderer, _elementRef) {
         this._renderer = _renderer;
         this._elementRef = _elementRef;
@@ -51,6 +51,14 @@ var _MatSlideToggleMixinBase = mixinTabIndex(mixinColor(mixinDisableRipple(mixin
  */
 var MatSlideToggle = (function (_super) {
     __extends(MatSlideToggle, _super);
+    /**
+     * @param {?} elementRef
+     * @param {?} renderer
+     * @param {?} _platform
+     * @param {?} _focusMonitor
+     * @param {?} _changeDetectorRef
+     * @param {?} tabIndex
+     */
     function MatSlideToggle(elementRef, renderer, _platform, _focusMonitor, _changeDetectorRef, tabIndex) {
         var _this = _super.call(this, renderer, elementRef) || this;
         _this._platform = _platform;
@@ -89,30 +97,30 @@ var MatSlideToggle = (function (_super) {
         return _this;
     }
     Object.defineProperty(MatSlideToggle.prototype, "required", {
-        get: /**
+        /**
          * Whether the slide-toggle is required.
          * @return {?}
          */
-        function () { return this._required; },
-        set: /**
+        get: function () { return this._required; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) { this._required = coerceBooleanProperty(value); },
+        set: function (value) { this._required = coerceBooleanProperty(value); },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MatSlideToggle.prototype, "checked", {
-        get: /**
+        /**
          * Whether the slide-toggle element is checked or not
          * @return {?}
          */
-        function () { return this._checked; },
-        set: /**
+        get: function () { return this._checked; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) {
+        set: function (value) {
             this._checked = !!value;
             this._changeDetectorRef.markForCheck();
         },
@@ -120,22 +128,18 @@ var MatSlideToggle = (function (_super) {
         configurable: true
     });
     Object.defineProperty(MatSlideToggle.prototype, "inputId", {
-        /** Returns the unique id for the visual hidden input. */
-        get: /**
+        /**
          * Returns the unique id for the visual hidden input.
          * @return {?}
          */
-        function () { return (this.id || this._uniqueId) + "-input"; },
+        get: function () { return (this.id || this._uniqueId) + "-input"; },
         enumerable: true,
         configurable: true
     });
     /**
      * @return {?}
      */
-    MatSlideToggle.prototype.ngAfterContentInit = /**
-     * @return {?}
-     */
-    function () {
+    MatSlideToggle.prototype.ngAfterContentInit = function () {
         var _this = this;
         this._slideRenderer = new SlideToggleRenderer(this._elementRef, this._platform);
         this._focusMonitor
@@ -145,26 +149,15 @@ var MatSlideToggle = (function (_super) {
     /**
      * @return {?}
      */
-    MatSlideToggle.prototype.ngOnDestroy = /**
-     * @return {?}
-     */
-    function () {
+    MatSlideToggle.prototype.ngOnDestroy = function () {
         this._focusMonitor.stopMonitoring(this._inputElement.nativeElement);
     };
     /**
      * This function will called if the underlying input changed its value through user interaction.
-     */
-    /**
-     * This function will called if the underlying input changed its value through user interaction.
      * @param {?} event
      * @return {?}
      */
-    MatSlideToggle.prototype._onChangeEvent = /**
-     * This function will called if the underlying input changed its value through user interaction.
-     * @param {?} event
-     * @return {?}
-     */
-    function (event) {
+    MatSlideToggle.prototype._onChangeEvent = function (event) {
         // We always have to stop propagation on the change event.
         // Otherwise the change event, from the input element, will bubble up and
         // emit its event object to the component's `change` output.
@@ -180,11 +173,7 @@ var MatSlideToggle = (function (_super) {
      * @param {?} event
      * @return {?}
      */
-    MatSlideToggle.prototype._onInputClick = /**
-     * @param {?} event
-     * @return {?}
-     */
-    function (event) {
+    MatSlideToggle.prototype._onInputClick = function (event) {
         // In some situations the user will release the mouse on the label element. The label element
         // redirects the click to the underlying input element and will result in a value change.
         // Prevent the default behavior if dragging, because the value will be set after drag.
@@ -200,85 +189,51 @@ var MatSlideToggle = (function (_super) {
         // Preventing bubbling for the second event will solve that issue.
         event.stopPropagation();
     };
-    /** Implemented as part of ControlValueAccessor. */
     /**
      * Implemented as part of ControlValueAccessor.
      * @param {?} value
      * @return {?}
      */
-    MatSlideToggle.prototype.writeValue = /**
-     * Implemented as part of ControlValueAccessor.
-     * @param {?} value
-     * @return {?}
-     */
-    function (value) {
+    MatSlideToggle.prototype.writeValue = function (value) {
         this.checked = !!value;
     };
-    /** Implemented as part of ControlValueAccessor. */
     /**
      * Implemented as part of ControlValueAccessor.
      * @param {?} fn
      * @return {?}
      */
-    MatSlideToggle.prototype.registerOnChange = /**
-     * Implemented as part of ControlValueAccessor.
-     * @param {?} fn
-     * @return {?}
-     */
-    function (fn) {
+    MatSlideToggle.prototype.registerOnChange = function (fn) {
         this.onChange = fn;
     };
-    /** Implemented as part of ControlValueAccessor. */
     /**
      * Implemented as part of ControlValueAccessor.
      * @param {?} fn
      * @return {?}
      */
-    MatSlideToggle.prototype.registerOnTouched = /**
-     * Implemented as part of ControlValueAccessor.
-     * @param {?} fn
-     * @return {?}
-     */
-    function (fn) {
+    MatSlideToggle.prototype.registerOnTouched = function (fn) {
         this.onTouched = fn;
     };
-    /** Implemented as a part of ControlValueAccessor. */
     /**
      * Implemented as a part of ControlValueAccessor.
      * @param {?} isDisabled
      * @return {?}
      */
-    MatSlideToggle.prototype.setDisabledState = /**
-     * Implemented as a part of ControlValueAccessor.
-     * @param {?} isDisabled
-     * @return {?}
-     */
-    function (isDisabled) {
+    MatSlideToggle.prototype.setDisabledState = function (isDisabled) {
         this.disabled = isDisabled;
         this._changeDetectorRef.markForCheck();
     };
-    /** Focuses the slide-toggle. */
     /**
      * Focuses the slide-toggle.
      * @return {?}
      */
-    MatSlideToggle.prototype.focus = /**
-     * Focuses the slide-toggle.
-     * @return {?}
-     */
-    function () {
+    MatSlideToggle.prototype.focus = function () {
         this._focusMonitor.focusVia(this._inputElement.nativeElement, 'keyboard');
     };
-    /** Toggles the checked state of the slide-toggle. */
     /**
      * Toggles the checked state of the slide-toggle.
      * @return {?}
      */
-    MatSlideToggle.prototype.toggle = /**
-     * Toggles the checked state of the slide-toggle.
-     * @return {?}
-     */
-    function () {
+    MatSlideToggle.prototype.toggle = function () {
         this.checked = !this.checked;
     };
     /**
@@ -286,12 +241,7 @@ var MatSlideToggle = (function (_super) {
      * @param {?} focusOrigin
      * @return {?}
      */
-    MatSlideToggle.prototype._onInputFocusChange = /**
-     * Function is called whenever the focus changes for the input element.
-     * @param {?} focusOrigin
-     * @return {?}
-     */
-    function (focusOrigin) {
+    MatSlideToggle.prototype._onInputFocusChange = function (focusOrigin) {
         if (!this._focusRipple && focusOrigin === 'keyboard') {
             // For keyboard focus show a persistent ripple as focus indicator.
             this._focusRipple = this._ripple.launch(0, 0, { persistent: true, centered: true });
@@ -309,11 +259,7 @@ var MatSlideToggle = (function (_super) {
      * Emits a change event on the `change` output. Also notifies the FormControl about the change.
      * @return {?}
      */
-    MatSlideToggle.prototype._emitChangeEvent = /**
-     * Emits a change event on the `change` output. Also notifies the FormControl about the change.
-     * @return {?}
-     */
-    function () {
+    MatSlideToggle.prototype._emitChangeEvent = function () {
         var /** @type {?} */ event = new MatSlideToggleChange();
         event.source = this;
         event.checked = this.checked;
@@ -323,10 +269,7 @@ var MatSlideToggle = (function (_super) {
     /**
      * @return {?}
      */
-    MatSlideToggle.prototype._onDragStart = /**
-     * @return {?}
-     */
-    function () {
+    MatSlideToggle.prototype._onDragStart = function () {
         if (!this.disabled) {
             this._slideRenderer.startThumbDrag(this.checked);
         }
@@ -335,11 +278,7 @@ var MatSlideToggle = (function (_super) {
      * @param {?} event
      * @return {?}
      */
-    MatSlideToggle.prototype._onDrag = /**
-     * @param {?} event
-     * @return {?}
-     */
-    function (event) {
+    MatSlideToggle.prototype._onDrag = function (event) {
         if (this._slideRenderer.dragging) {
             this._slideRenderer.updateThumbPosition(event.deltaX);
         }
@@ -347,10 +286,7 @@ var MatSlideToggle = (function (_super) {
     /**
      * @return {?}
      */
-    MatSlideToggle.prototype._onDragEnd = /**
-     * @return {?}
-     */
-    function () {
+    MatSlideToggle.prototype._onDragEnd = function () {
         var _this = this;
         if (this._slideRenderer.dragging) {
             var /** @type {?} */ _previousChecked = this.checked;
@@ -363,16 +299,11 @@ var MatSlideToggle = (function (_super) {
             setTimeout(function () { return _this._slideRenderer.stopThumbDrag(); });
         }
     };
-    /** Method being called whenever the label text changes. */
     /**
      * Method being called whenever the label text changes.
      * @return {?}
      */
-    MatSlideToggle.prototype._onLabelTextChange = /**
-     * Method being called whenever the label text changes.
-     * @return {?}
-     */
-    function () {
+    MatSlideToggle.prototype._onLabelTextChange = function () {
         // This method is getting called whenever the label of the slide-toggle changes.
         // Since the slide-toggle uses the OnPush strategy we need to notify it about the change
         // that has been recognized by the cdkObserveContent directive.
@@ -380,7 +311,6 @@ var MatSlideToggle = (function (_super) {
     };
     MatSlideToggle.decorators = [
         { type: Component, args: [{selector: 'mat-slide-toggle',
-                    exportAs: 'matSlideToggle',
                     host: {
                         'class': 'mat-slide-toggle',
                         '[id]': 'id',
@@ -397,7 +327,9 @@ var MatSlideToggle = (function (_super) {
                     changeDetection: ChangeDetectionStrategy.OnPush,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatSlideToggle.ctorParameters = function () { return [
         { type: ElementRef, },
         { type: Renderer2, },
@@ -407,16 +339,16 @@ var MatSlideToggle = (function (_super) {
         { type: undefined, decorators: [{ type: Attribute, args: ['tabindex',] },] },
     ]; };
     MatSlideToggle.propDecorators = {
-        "name": [{ type: Input },],
-        "id": [{ type: Input },],
-        "labelPosition": [{ type: Input },],
-        "ariaLabel": [{ type: Input, args: ['aria-label',] },],
-        "ariaLabelledby": [{ type: Input, args: ['aria-labelledby',] },],
-        "required": [{ type: Input },],
-        "checked": [{ type: Input },],
-        "change": [{ type: Output },],
-        "_inputElement": [{ type: ViewChild, args: ['input',] },],
-        "_ripple": [{ type: ViewChild, args: [MatRipple,] },],
+        'name': [{ type: Input },],
+        'id': [{ type: Input },],
+        'labelPosition': [{ type: Input },],
+        'ariaLabel': [{ type: Input, args: ['aria-label',] },],
+        'ariaLabelledby': [{ type: Input, args: ['aria-labelledby',] },],
+        'required': [{ type: Input },],
+        'checked': [{ type: Input },],
+        'change': [{ type: Output },],
+        '_inputElement': [{ type: ViewChild, args: ['input',] },],
+        '_ripple': [{ type: ViewChild, args: [MatRipple,] },],
     };
     return MatSlideToggle;
 }(_MatSlideToggleMixinBase));
@@ -424,6 +356,10 @@ var MatSlideToggle = (function (_super) {
  * Renderer for the Slide Toggle component, which separates DOM modification in its own class
  */
 var SlideToggleRenderer = (function () {
+    /**
+     * @param {?} elementRef
+     * @param {?} platform
+     */
     function SlideToggleRenderer(elementRef, platform) {
         /**
          * Whether the thumb is currently being dragged.
@@ -436,18 +372,12 @@ var SlideToggleRenderer = (function () {
             this._thumbBarEl = elementRef.nativeElement.querySelector('.mat-slide-toggle-bar');
         }
     }
-    /** Initializes the drag of the slide-toggle. */
     /**
      * Initializes the drag of the slide-toggle.
      * @param {?} checked
      * @return {?}
      */
-    SlideToggleRenderer.prototype.startThumbDrag = /**
-     * Initializes the drag of the slide-toggle.
-     * @param {?} checked
-     * @return {?}
-     */
-    function (checked) {
+    SlideToggleRenderer.prototype.startThumbDrag = function (checked) {
         if (this.dragging) {
             return;
         }
@@ -456,16 +386,11 @@ var SlideToggleRenderer = (function () {
         this._previousChecked = checked;
         this.dragging = true;
     };
-    /** Resets the current drag and returns the new checked value. */
     /**
      * Resets the current drag and returns the new checked value.
      * @return {?}
      */
-    SlideToggleRenderer.prototype.stopThumbDrag = /**
-     * Resets the current drag and returns the new checked value.
-     * @return {?}
-     */
-    function () {
+    SlideToggleRenderer.prototype.stopThumbDrag = function () {
         if (!this.dragging) {
             return false;
         }
@@ -475,18 +400,12 @@ var SlideToggleRenderer = (function () {
         applyCssTransform(this._thumbEl, '');
         return this.dragPercentage > 50;
     };
-    /** Updates the thumb containers position from the specified distance. */
     /**
      * Updates the thumb containers position from the specified distance.
      * @param {?} distance
      * @return {?}
      */
-    SlideToggleRenderer.prototype.updateThumbPosition = /**
-     * Updates the thumb containers position from the specified distance.
-     * @param {?} distance
-     * @return {?}
-     */
-    function (distance) {
+    SlideToggleRenderer.prototype.updateThumbPosition = function (distance) {
         this.dragPercentage = this._getDragPercentage(distance);
         // Calculate the moved distance based on the thumb bar width.
         var /** @type {?} */ dragX = (this.dragPercentage / 100) * this._thumbBarWidth;
@@ -497,12 +416,7 @@ var SlideToggleRenderer = (function () {
      * @param {?} distance
      * @return {?}
      */
-    SlideToggleRenderer.prototype._getDragPercentage = /**
-     * Retrieves the percentage of thumb from the moved distance. Percentage as fraction of 100.
-     * @param {?} distance
-     * @return {?}
-     */
-    function (distance) {
+    SlideToggleRenderer.prototype._getDragPercentage = function (distance) {
         var /** @type {?} */ percentage = (distance / this._thumbBarWidth) * 100;
         // When the toggle was initially checked, then we have to start the drag at the end.
         if (this._previousChecked) {
@@ -512,11 +426,6 @@ var SlideToggleRenderer = (function () {
     };
     return SlideToggleRenderer;
 }());
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 var MatSlideToggleModule = (function () {
     function MatSlideToggleModule() {
@@ -531,20 +440,13 @@ var MatSlideToggleModule = (function () {
                     ],
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatSlideToggleModule.ctorParameters = function () { return []; };
     return MatSlideToggleModule;
 }());
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 /**
  * Generated bundle index. Do not edit.
  */

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
@@ -91,7 +91,6 @@ export declare class MatChipList implements MatFormFieldControl<any>, ControlVal
     private _compareWith;
     /** The array of selected chips inside chip list. */
     readonly selected: MatChip[] | MatChip;
-    readonly role: string | null;
     /** Whether the user should be allowed to select multiple chips. */
     multiple: boolean;
     /**

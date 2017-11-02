@@ -1,16 +1,15 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
 import { AnimationEvent } from '@angular/animations';
-import { FocusTrapFactory, FocusMonitor, FocusOrigin } from '@angular/cdk/a11y';
+import { FocusTrapFactory } from '@angular/cdk/a11y';
 import { Directionality } from '@angular/cdk/bidi';
 import { AfterContentInit, ChangeDetectorRef, ElementRef, EventEmitter, NgZone, OnDestroy, QueryList, Renderer2 } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
-import { Observable } from 'rxjs/Observable';
 /** Throws an exception when two MatDrawer are matching the same position. */
 export declare function throwMatDuplicatedDrawerError(position: string): void;
 /**
@@ -43,7 +42,6 @@ export declare class MatDrawerContent implements AfterContentInit {
 export declare class MatDrawer implements AfterContentInit, OnDestroy {
     private _elementRef;
     private _focusTrapFactory;
-    private _focusMonitor;
     private _doc;
     private _focusTrap;
     private _elementFocusedBeforeDrawerWasOpened;
@@ -62,28 +60,22 @@ export declare class MatDrawer implements AfterContentInit, OnDestroy {
     private _disableClose;
     /** Whether the drawer is opened. */
     private _opened;
-    /** How the sidenav was opened (keypress, mouse click etc.) */
-    private _openedVia;
     /** Emits whenever the drawer has started animating. */
     _animationStarted: EventEmitter<AnimationEvent>;
+    /** Whether the drawer is animating. Used to prevent overlapping animations. */
+    _isAnimating: boolean;
     /** Current state of the sidenav animation. */
     _animationState: 'open-instant' | 'open' | 'void';
-    /** Event emitted when the drawer open state is changed. */
-    openedChange: EventEmitter<boolean>;
-    /** Event emitted when the drawer has been opened. */
-    readonly _openedStream: Observable<void>;
-    /** Event emitted when the drawer has been closed. */
-    readonly _closedStream: Observable<void>;
     /**
-     * Event emitted when the drawer is fully opened.
-     * @deprecated Use `openedChange` instead.
+     * Promise that resolves when the open/close animation completes. It is here for backwards
+     * compatibility and should be removed next time we do drawer breaking changes.
+     * @deprecated
      */
-    onOpen: Observable<void>;
-    /**
-     * Event emitted when the drawer is fully closed.
-     * @deprecated Use `openedChange` instead.
-     */
-    onClose: Observable<void>;
+    private _currentTogglePromise;
+    /** Event emitted when the drawer is fully opened. */
+    onOpen: EventEmitter<void | MatDrawerToggleResult>;
+    /** Event emitted when the drawer is fully closed. */
+    onClose: EventEmitter<void | MatDrawerToggleResult>;
     /** Event emitted when the drawer's position changes. */
     onPositionChanged: EventEmitter<void>;
     /** @deprecated */
@@ -94,7 +86,7 @@ export declare class MatDrawer implements AfterContentInit, OnDestroy {
      */
     _modeChanged: Subject<{}>;
     readonly _isFocusTrapEnabled: boolean;
-    constructor(_elementRef: ElementRef, _focusTrapFactory: FocusTrapFactory, _focusMonitor: FocusMonitor, _doc: any);
+    constructor(_elementRef: ElementRef, _focusTrapFactory: FocusTrapFactory, _doc: any);
     /**
      * If focus is currently inside the drawer, restores it to where it was before the drawer
      * opened.
@@ -107,21 +99,15 @@ export declare class MatDrawer implements AfterContentInit, OnDestroy {
      * starts or end.
      */
     opened: boolean;
-    /**
-     * Open the drawer.
-     * @param openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
-     */
-    open(openedVia?: FocusOrigin): Promise<void>;
+    /** Open the drawer. */
+    open(): Promise<MatDrawerToggleResult>;
     /** Close the drawer. */
-    close(): Promise<void>;
+    close(): Promise<MatDrawerToggleResult>;
     /**
      * Toggle this drawer.
      * @param isOpen Whether the drawer should be open.
-     * @param openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
      */
-    toggle(isOpen?: boolean, openedVia?: FocusOrigin): Promise<void>;
+    toggle(isOpen?: boolean): Promise<MatDrawerToggleResult>;
     /**
      * Handles the keyboard events.
      * @docs-private

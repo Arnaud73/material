@@ -1,11 +1,11 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { A11yModule, ARIA_DESCRIBER_PROVIDER, AriaDescriber, FocusMonitor } from '@angular/cdk/a11y';
+import { A11yModule, ARIA_DESCRIBER_PROVIDER, AriaDescriber } from '@angular/cdk/a11y';
 import { Overlay, OverlayConfig, OverlayModule } from '@angular/cdk/overlay';
 import { Platform, PlatformModule } from '@angular/cdk/platform';
 import { CommonModule } from '@angular/common';
@@ -16,14 +16,9 @@ import { Directionality } from '@angular/cdk/bidi';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ESCAPE } from '@angular/cdk/keycodes';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { first } from 'rxjs/operators/first';
+import { first } from '@angular/cdk/rxjs';
 import { ScrollDispatcher } from '@angular/cdk/scrolling';
 import { Subject } from 'rxjs/Subject';
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 /**
  * Time in ms to delay before changing the tooltip visibility to hidden
@@ -81,11 +76,10 @@ class MatTooltip {
      * @param {?} _ngZone
      * @param {?} _platform
      * @param {?} _ariaDescriber
-     * @param {?} _focusMonitor
      * @param {?} _scrollStrategy
      * @param {?} _dir
      */
-    constructor(renderer, _overlay, _elementRef, _scrollDispatcher, _viewContainerRef, _ngZone, _platform, _ariaDescriber, _focusMonitor, _scrollStrategy, _dir) {
+    constructor(renderer, _overlay, _elementRef, _scrollDispatcher, _viewContainerRef, _ngZone, _platform, _ariaDescriber, _scrollStrategy, _dir) {
         this._overlay = _overlay;
         this._elementRef = _elementRef;
         this._scrollDispatcher = _scrollDispatcher;
@@ -93,7 +87,6 @@ class MatTooltip {
         this._ngZone = _ngZone;
         this._platform = _platform;
         this._ariaDescriber = _ariaDescriber;
-        this._focusMonitor = _focusMonitor;
         this._scrollStrategy = _scrollStrategy;
         this._dir = _dir;
         this._position = 'below';
@@ -115,15 +108,6 @@ class MatTooltip {
             this._leaveListener =
                 renderer.listen(_elementRef.nativeElement, 'mouseleave', () => this.hide());
         }
-        _focusMonitor.monitor(_elementRef.nativeElement, renderer, false).subscribe(origin => {
-            // Note that the focus monitor runs outside the Angular zone.
-            if (!origin) {
-                _ngZone.run(() => this.hide(0));
-            }
-            else if (origin !== 'program') {
-                _ngZone.run(() => this.show());
-            }
-        });
     }
     /**
      * Allows the user to define the position of the tooltip relative to the parent element
@@ -215,7 +199,6 @@ class MatTooltip {
             this._leaveListener();
         }
         this._ariaDescriber.removeDescription(this._elementRef.nativeElement, this.message);
-        this._focusMonitor.stopMonitoring(this._elementRef.nativeElement);
     }
     /**
      * Shows the tooltip after the delay in ms, defaults to tooltip-delay-show or 0ms if no input
@@ -297,9 +280,7 @@ class MatTooltip {
             .position()
             .connectedTo(this._elementRef, origin.main, overlay.main)
             .withFallbackPosition(origin.fallback, overlay.fallback);
-        const /** @type {?} */ scrollableAncestors = this._scrollDispatcher
-            .getAncestorScrollContainers(this._elementRef);
-        strategy.withScrollableContainers(scrollableAncestors);
+        strategy.withScrollableContainers(this._scrollDispatcher.getScrollContainers(this._elementRef));
         strategy.onPositionChange.subscribe(change => {
             if (this._tooltipInstance) {
                 if (change.scrollableViewProperties.isOverlayClipped && this._tooltipInstance.isVisible()) {
@@ -405,9 +386,9 @@ class MatTooltip {
         if (this._tooltipInstance) {
             this._tooltipInstance.message = this.message;
             this._tooltipInstance._markForCheck();
-            this._ngZone.onMicrotaskEmpty.asObservable().pipe(first()).subscribe(() => {
+            first.call(this._ngZone.onMicrotaskEmpty.asObservable()).subscribe(() => {
                 if (this._tooltipInstance) {
-                    /** @type {?} */ ((this._overlayRef)).updatePosition();
+                    ((this._overlayRef)).updatePosition();
                 }
             });
         }
@@ -455,12 +436,16 @@ MatTooltip.decorators = [
                 exportAs: 'matTooltip',
                 host: {
                     '(longpress)': 'show()',
+                    '(focus)': 'show()',
+                    '(blur)': 'hide(0)',
                     '(keydown)': '_handleKeydown($event)',
                     '(touchend)': 'hide(' + TOUCHEND_HIDE_DELAY + ')',
                 },
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatTooltip.ctorParameters = () => [
     { type: Renderer2, },
     { type: Overlay, },
@@ -470,18 +455,17 @@ MatTooltip.ctorParameters = () => [
     { type: NgZone, },
     { type: Platform, },
     { type: AriaDescriber, },
-    { type: FocusMonitor, },
     { type: undefined, decorators: [{ type: Inject, args: [MAT_TOOLTIP_SCROLL_STRATEGY,] },] },
     { type: Directionality, decorators: [{ type: Optional },] },
 ];
 MatTooltip.propDecorators = {
-    "position": [{ type: Input, args: ['matTooltipPosition',] },],
-    "disabled": [{ type: Input, args: ['matTooltipDisabled',] },],
-    "_positionDeprecated": [{ type: Input, args: ['tooltip-position',] },],
-    "showDelay": [{ type: Input, args: ['matTooltipShowDelay',] },],
-    "hideDelay": [{ type: Input, args: ['matTooltipHideDelay',] },],
-    "message": [{ type: Input, args: ['matTooltip',] },],
-    "tooltipClass": [{ type: Input, args: ['matTooltipClass',] },],
+    'position': [{ type: Input, args: ['matTooltipPosition',] },],
+    'disabled': [{ type: Input, args: ['matTooltipDisabled',] },],
+    '_positionDeprecated': [{ type: Input, args: ['tooltip-position',] },],
+    'showDelay': [{ type: Input, args: ['matTooltipShowDelay',] },],
+    'hideDelay': [{ type: Input, args: ['matTooltipHideDelay',] },],
+    'message': [{ type: Input, args: ['matTooltip',] },],
+    'tooltipClass': [{ type: Input, args: ['matTooltipClass',] },],
 };
 /**
  * Internal component that wraps the tooltip's content.
@@ -594,7 +578,7 @@ class TooltipComponent {
      * @return {?}
      */
     _animationDone(event) {
-        const /** @type {?} */ toState = /** @type {?} */ (event.toState);
+        const /** @type {?} */ toState = (event.toState);
         if (toState === 'hidden' && !this.isVisible()) {
             this._onHide.next();
         }
@@ -650,15 +634,12 @@ TooltipComponent.decorators = [
                 }
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 TooltipComponent.ctorParameters = () => [
     { type: ChangeDetectorRef, },
 ];
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 class MatTooltipModule {
 }
@@ -677,18 +658,11 @@ MatTooltipModule.decorators = [
                 providers: [MAT_TOOLTIP_SCROLL_STRATEGY_PROVIDER, ARIA_DESCRIBER_PROVIDER],
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatTooltipModule.ctorParameters = () => [];
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 /**
  * Generated bundle index. Do not edit.
  */

@@ -10,7 +10,7 @@
       "from": "./toolbar"
     },
     {
-      "from": "./sort"
+      "from": "./table"
     },
     {
       "from": "./button"
@@ -25,7 +25,7 @@
       "from": "./checkbox"
     },
     {
-      "from": "./snack-bar"
+      "from": "./sort"
     },
     {
       "from": "./dialog"
@@ -34,7 +34,7 @@
       "from": "./icon"
     },
     {
-      "from": "./slider"
+      "from": "./snack-bar"
     },
     {
       "from": "./expansion"
@@ -43,7 +43,7 @@
       "from": "./grid-list"
     },
     {
-      "from": "./slide-toggle"
+      "from": "./slider"
     },
     {
       "from": "./tabs"
@@ -58,19 +58,22 @@
       "from": "./menu"
     },
     {
-      "from": "./sidenav"
+      "from": "./slide-toggle"
     },
     {
       "from": "./tooltip"
     },
     {
-      "from": "./radio"
+      "from": "./sidenav"
     },
     {
       "from": "./progress-bar"
     },
     {
       "from": "./progress-spinner"
+    },
+    {
+      "from": "./radio"
     },
     {
       "from": "./select"
@@ -92,9 +95,6 @@
     },
     {
       "from": "./input"
-    },
-    {
-      "from": "./table"
     },
     {
       "from": "./typings/index"

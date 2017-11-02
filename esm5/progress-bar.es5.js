@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
@@ -8,11 +8,6 @@
 import { ChangeDetectionStrategy, Component, Input, NgModule, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCommonModule } from '@angular/material/core';
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 /**
  * <mat-progress-bar> component.
@@ -35,61 +30,47 @@ var MatProgressBar = (function () {
         this.mode = 'determinate';
     }
     Object.defineProperty(MatProgressBar.prototype, "value", {
-        get: /**
+        /**
          * Value of the progressbar. Defaults to zero. Mirrored to aria-valuenow.
          * @return {?}
          */
-        function () { return this._value; },
-        set: /**
+        get: function () { return this._value; },
+        /**
          * @param {?} v
          * @return {?}
          */
-        function (v) { this._value = clamp(v || 0); },
+        set: function (v) { this._value = clamp(v || 0); },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MatProgressBar.prototype, "bufferValue", {
-        get: /**
+        /**
          * Buffer value of the progress bar. Defaults to zero.
          * @return {?}
          */
-        function () { return this._bufferValue; },
-        set: /**
+        get: function () { return this._bufferValue; },
+        /**
          * @param {?} v
          * @return {?}
          */
-        function (v) { this._bufferValue = clamp(v || 0); },
+        set: function (v) { this._bufferValue = clamp(v || 0); },
         enumerable: true,
         configurable: true
     });
-    /** Gets the current transform value for the progress bar's primary indicator. */
     /**
      * Gets the current transform value for the progress bar's primary indicator.
      * @return {?}
      */
-    MatProgressBar.prototype._primaryTransform = /**
-     * Gets the current transform value for the progress bar's primary indicator.
-     * @return {?}
-     */
-    function () {
+    MatProgressBar.prototype._primaryTransform = function () {
         var /** @type {?} */ scale = this.value / 100;
         return { transform: "scaleX(" + scale + ")" };
     };
     /**
      * Gets the current transform value for the progress bar's buffer indicator.  Only used if the
      * progress mode is set to buffer, otherwise returns an undefined, causing no transformation.
-     */
-    /**
-     * Gets the current transform value for the progress bar's buffer indicator.  Only used if the
-     * progress mode is set to buffer, otherwise returns an undefined, causing no transformation.
      * @return {?}
      */
-    MatProgressBar.prototype._bufferTransform = /**
-     * Gets the current transform value for the progress bar's buffer indicator.  Only used if the
-     * progress mode is set to buffer, otherwise returns an undefined, causing no transformation.
-     * @return {?}
-     */
-    function () {
+    MatProgressBar.prototype._bufferTransform = function () {
         if (this.mode == 'buffer') {
             var /** @type {?} */ scale = this.bufferValue / 100;
             return { transform: "scaleX(" + scale + ")" };
@@ -116,13 +97,15 @@ var MatProgressBar = (function () {
                     preserveWhitespaces: false,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatProgressBar.ctorParameters = function () { return []; };
     MatProgressBar.propDecorators = {
-        "color": [{ type: Input },],
-        "value": [{ type: Input },],
-        "bufferValue": [{ type: Input },],
-        "mode": [{ type: Input },],
+        'color': [{ type: Input },],
+        'value': [{ type: Input },],
+        'bufferValue': [{ type: Input },],
+        'mode': [{ type: Input },],
     };
     return MatProgressBar;
 }());
@@ -139,11 +122,6 @@ function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
 }
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
 var MatProgressBarModule = (function () {
     function MatProgressBarModule() {
     }
@@ -154,20 +132,13 @@ var MatProgressBarModule = (function () {
                     declarations: [MatProgressBar],
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatProgressBarModule.ctorParameters = function () { return []; };
     return MatProgressBarModule;
 }());
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 /**
  * Generated bundle index. Do not edit.
  */

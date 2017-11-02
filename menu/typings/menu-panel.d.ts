@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
@@ -17,7 +17,6 @@ export interface MatMenuPanel {
     parentMenu?: MatMenuPanel | undefined;
     direction?: Direction;
     focusFirstItem: () => void;
-    resetActiveItem: () => void;
     setPositionClasses: (x: MenuPositionX, y: MenuPositionY) => void;
     setElevation?(depth: number): void;
 }

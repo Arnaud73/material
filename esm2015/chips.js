@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
@@ -11,21 +11,13 @@ import { Directionality } from '@angular/cdk/bidi';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { SelectionModel } from '@angular/cdk/collections';
 import { BACKSPACE, DELETE, ENTER, LEFT_ARROW, RIGHT_ARROW, SPACE } from '@angular/cdk/keycodes';
-import { startWith } from 'rxjs/operators/startWith';
+import { startWith } from '@angular/cdk/rxjs';
 import { FormGroupDirective, NgControl, NgForm } from '@angular/forms';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { merge } from 'rxjs/observable/merge';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 import { mixinColor, mixinDisabled } from '@angular/material/core';
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-/**
- * @record
- */
 
 /**
  * Event object emitted by MatChip when selected or deselected.
@@ -68,7 +60,9 @@ MatBasicChip.decorators = [
                 host: { 'class': 'mat-basic-chip' },
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatBasicChip.ctorParameters = () => [];
 /**
  * Material design styled Chip component. Used inside the MatChipList component.
@@ -335,21 +329,23 @@ MatChip.decorators = [
                 },
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatChip.ctorParameters = () => [
     { type: Renderer2, },
     { type: ElementRef, },
 ];
 MatChip.propDecorators = {
-    "selected": [{ type: Input },],
-    "value": [{ type: Input },],
-    "selectable": [{ type: Input },],
-    "removable": [{ type: Input },],
-    "selectionChange": [{ type: Output },],
-    "destroyed": [{ type: Output },],
-    "destroy": [{ type: Output },],
-    "removed": [{ type: Output },],
-    "onRemove": [{ type: Output, args: ['remove',] },],
+    'selected': [{ type: Input },],
+    'value': [{ type: Input },],
+    'selectable': [{ type: Input },],
+    'removable': [{ type: Input },],
+    'selectionChange': [{ type: Output },],
+    'destroyed': [{ type: Output },],
+    'destroy': [{ type: Output },],
+    'removed': [{ type: Output },],
+    'onRemove': [{ type: Output, args: ['remove',] },],
 };
 /**
  * Applies proper (click) support and adds styling for use with the Material Design "cancel" icon
@@ -386,19 +382,16 @@ MatChipRemove.decorators = [
                 selector: '[matChipRemove]',
                 host: {
                     'class': 'mat-chip-remove',
-                    '(click)': '_handleClick()',
-                }
+                    '(click)': '_handleClick($event)',
+                },
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatChipRemove.ctorParameters = () => [
     { type: MatChip, },
 ];
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 // Increasing integer for generating unique ids for chip-list components.
 let nextUniqueId = 0;
@@ -521,12 +514,6 @@ class MatChipList {
         return this.multiple ? this._selectionModel.selected : this._selectionModel.selected[0];
     }
     /**
-     * @return {?}
-     */
-    get role() {
-        return this.empty ? null : 'listbox';
-    }
-    /**
      * Whether the user should be allowed to select multiple chips.
      * @return {?}
      */
@@ -631,7 +618,7 @@ class MatChipList {
      * @return {?}
      */
     get shouldPlaceholderFloat() {
-        return !this.empty || this.focused;
+        return this.empty;
     }
     /**
      * Whether this chip-list is disabled.
@@ -713,7 +700,7 @@ class MatChipList {
             setTimeout(() => this._tabIndex = this._userTabIndex || 0);
         });
         // When the list changes, re-subscribe
-        this._changeSubscription = this.chips.changes.pipe(startWith(null)).subscribe(() => {
+        this._changeSubscription = startWith.call(this.chips.changes, null).subscribe(() => {
             this._resetChips();
             // Reset chips selected/deselected status
             this._initializeSelection();
@@ -827,7 +814,7 @@ class MatChipList {
      */
     _keydown(event) {
         let /** @type {?} */ code = event.keyCode;
-        let /** @type {?} */ target = /** @type {?} */ (event.target);
+        let /** @type {?} */ target = (event.target);
         let /** @type {?} */ isInputEmpty = this._isInputEmpty(target);
         let /** @type {?} */ isRtl = this._dir && this._dir.value == 'rtl';
         let /** @type {?} */ isPrevKey = (code === (isRtl ? RIGHT_ARROW : LEFT_ARROW));
@@ -924,7 +911,7 @@ class MatChipList {
      */
     _isInputEmpty(element) {
         if (element && element.nodeName.toLowerCase() === 'input') {
-            let /** @type {?} */ input = /** @type {?} */ (element);
+            let /** @type {?} */ input = (element);
             return !input.value;
         }
         return false;
@@ -946,13 +933,7 @@ class MatChipList {
             // Shift focus to the active item. Note that we shouldn't do this in multiple
             // mode, because we don't know what chip the user interacted with last.
             if (correspondingChip) {
-                const /** @type {?} */ correspondingChipIndex = this.chips.toArray().indexOf(correspondingChip);
-                if (isUserInput) {
-                    this._keyManager.setActiveItem(correspondingChipIndex);
-                }
-                else {
-                    this._keyManager.updateActiveItemIndex(correspondingChipIndex);
-                }
+                this._keyManager.setActiveItem(this.chips.toArray().indexOf(correspondingChip));
             }
         }
     }
@@ -1151,10 +1132,10 @@ MatChipList.decorators = [
                     '[attr.aria-disabled]': 'disabled.toString()',
                     '[attr.aria-invalid]': 'errorState',
                     '[attr.aria-multiselectable]': 'multiple',
-                    '[attr.role]': 'role',
                     '[class.mat-chip-list-disabled]': 'disabled',
                     '[class.mat-chip-list-invalid]': 'errorState',
                     '[class.mat-chip-list-required]': 'required',
+                    'role': 'listbox',
                     '[attr.aria-orientation]': 'ariaOrientation',
                     'class': 'mat-chip-list',
                     '(focus)': 'focus()',
@@ -1168,7 +1149,9 @@ MatChipList.decorators = [
                 changeDetection: ChangeDetectionStrategy.OnPush
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatChipList.ctorParameters = () => [
     { type: Renderer2, },
     { type: ElementRef, },
@@ -1179,29 +1162,20 @@ MatChipList.ctorParameters = () => [
     { type: NgControl, decorators: [{ type: Optional }, { type: Self },] },
 ];
 MatChipList.propDecorators = {
-    "multiple": [{ type: Input },],
-    "compareWith": [{ type: Input },],
-    "value": [{ type: Input },],
-    "id": [{ type: Input },],
-    "required": [{ type: Input },],
-    "placeholder": [{ type: Input },],
-    "disabled": [{ type: Input },],
-    "ariaOrientation": [{ type: Input, args: ['aria-orientation',] },],
-    "selectable": [{ type: Input },],
-    "tabIndex": [{ type: Input },],
-    "change": [{ type: Output },],
-    "valueChange": [{ type: Output },],
-    "chips": [{ type: ContentChildren, args: [MatChip,] },],
+    'multiple': [{ type: Input },],
+    'compareWith': [{ type: Input },],
+    'value': [{ type: Input },],
+    'id': [{ type: Input },],
+    'required': [{ type: Input },],
+    'placeholder': [{ type: Input },],
+    'disabled': [{ type: Input },],
+    'ariaOrientation': [{ type: Input, args: ['aria-orientation',] },],
+    'selectable': [{ type: Input },],
+    'tabIndex': [{ type: Input },],
+    'change': [{ type: Output },],
+    'valueChange': [{ type: Output },],
+    'chips': [{ type: ContentChildren, args: [MatChip,] },],
 };
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @record
- */
 
 /**
  * Directive that adds chip-specific behaviors to an input element inside <mat-form-field>.
@@ -1220,13 +1194,14 @@ class MatChipInput {
          *
          * Defaults to `[ENTER]`.
          */
+        // TODO(tinayuangao): Support Set here
         this.separatorKeyCodes = [ENTER];
         /**
          * Emitted when a chip is to be added.
          */
         this.chipEnd = new EventEmitter();
         this.placeholder = '';
-        this._inputElement = /** @type {?} */ (this._elementRef.nativeElement);
+        this._inputElement = this._elementRef.nativeElement;
     }
     /**
      * Register input for chip list
@@ -1319,22 +1294,19 @@ MatChipInput.decorators = [
                 }
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatChipInput.ctorParameters = () => [
     { type: ElementRef, },
 ];
 MatChipInput.propDecorators = {
-    "chipList": [{ type: Input, args: ['matChipInputFor',] },],
-    "addOnBlur": [{ type: Input, args: ['matChipInputAddOnBlur',] },],
-    "separatorKeyCodes": [{ type: Input, args: ['matChipInputSeparatorKeyCodes',] },],
-    "chipEnd": [{ type: Output, args: ['matChipInputTokenEnd',] },],
-    "placeholder": [{ type: Input },],
+    'chipList': [{ type: Input, args: ['matChipInputFor',] },],
+    'addOnBlur': [{ type: Input, args: ['matChipInputAddOnBlur',] },],
+    'separatorKeyCodes': [{ type: Input, args: ['matChipInputSeparatorKeyCodes',] },],
+    'chipEnd': [{ type: Output, args: ['matChipInputTokenEnd',] },],
+    'placeholder': [{ type: Input },],
 };
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 class MatChipsModule {
 }
@@ -1345,18 +1317,11 @@ MatChipsModule.decorators = [
                 declarations: [MatChipList, MatChip, MatChipInput, MatChipRemove, MatChipRemove, MatBasicChip]
             },] },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 MatChipsModule.ctorParameters = () => [];
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 /**
  * Generated bundle index. Do not edit.
  */

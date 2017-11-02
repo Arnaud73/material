@@ -1,11 +1,11 @@
 /**
  * @license
- * Copyright Google LLC All Rights Reserved.
+ * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { A11yModule, FocusMonitor, FocusTrapFactory } from '@angular/cdk/a11y';
+import { A11yModule, FocusTrapFactory } from '@angular/cdk/a11y';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ContentChild, ContentChildren, ElementRef, EventEmitter, Inject, Input, NgModule, NgZone, Optional, Output, Renderer2, ViewEncapsulation, forwardRef } from '@angular/core';
@@ -17,20 +17,10 @@ import { coerceBooleanProperty, coerceNumberProperty } from '@angular/cdk/coerci
 import { ESCAPE } from '@angular/cdk/keycodes';
 import { DOCUMENT } from '@angular/platform-browser';
 import { merge } from 'rxjs/observable/merge';
-import { filter } from 'rxjs/operators/filter';
-import { first } from 'rxjs/operators/first';
-import { startWith } from 'rxjs/operators/startWith';
-import { takeUntil } from 'rxjs/operators/takeUntil';
-import { map } from 'rxjs/operators/map';
 import { Subject } from 'rxjs/Subject';
-import 'rxjs/Observable';
+import { RxChain, filter, first, startWith, takeUntil } from '@angular/cdk/rxjs';
 import { __extends } from 'tslib';
 import * as tslib_1 from 'tslib';
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 /**
  * Throws an exception when two MatDrawer are matching the same position.
@@ -45,6 +35,10 @@ function throwMatDuplicatedDrawerError(position) {
  * @deprecated
  */
 var MatDrawerToggleResult = (function () {
+    /**
+     * @param {?} type
+     * @param {?} animationFinished
+     */
     function MatDrawerToggleResult(type, animationFinished) {
         this.type = type;
         this.animationFinished = animationFinished;
@@ -52,6 +46,10 @@ var MatDrawerToggleResult = (function () {
     return MatDrawerToggleResult;
 }());
 var MatDrawerContent = (function () {
+    /**
+     * @param {?} _changeDetectorRef
+     * @param {?} _container
+     */
     function MatDrawerContent(_changeDetectorRef, _container) {
         this._changeDetectorRef = _changeDetectorRef;
         this._container = _container;
@@ -65,10 +63,7 @@ var MatDrawerContent = (function () {
     /**
      * @return {?}
      */
-    MatDrawerContent.prototype.ngAfterContentInit = /**
-     * @return {?}
-     */
-    function () {
+    MatDrawerContent.prototype.ngAfterContentInit = function () {
         var _this = this;
         this._container._contentMargins.subscribe(function (margins) {
             _this._margins = margins;
@@ -88,7 +83,9 @@ var MatDrawerContent = (function () {
                     preserveWhitespaces: false,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatDrawerContent.ctorParameters = function () { return [
         { type: ChangeDetectorRef, },
         { type: MatDrawerContainer, decorators: [{ type: Inject, args: [forwardRef(function () { return MatDrawerContainer; }),] },] },
@@ -99,11 +96,15 @@ var MatDrawerContent = (function () {
  * This component corresponds to a drawer that can be opened on the drawer container.
  */
 var MatDrawer = (function () {
-    function MatDrawer(_elementRef, _focusTrapFactory, _focusMonitor, _doc) {
+    /**
+     * @param {?} _elementRef
+     * @param {?} _focusTrapFactory
+     * @param {?} _doc
+     */
+    function MatDrawer(_elementRef, _focusTrapFactory, _doc) {
         var _this = this;
         this._elementRef = _elementRef;
         this._focusTrapFactory = _focusTrapFactory;
-        this._focusMonitor = _focusMonitor;
         this._doc = _doc;
         this._elementFocusedBeforeDrawerWasOpened = null;
         /**
@@ -122,23 +123,21 @@ var MatDrawer = (function () {
          */
         this._animationStarted = new EventEmitter();
         /**
+         * Whether the drawer is animating. Used to prevent overlapping animations.
+         */
+        this._isAnimating = false;
+        /**
          * Current state of the sidenav animation.
          */
         this._animationState = 'void';
         /**
-         * Event emitted when the drawer open state is changed.
-         */
-        this.openedChange = new EventEmitter();
-        /**
          * Event emitted when the drawer is fully opened.
-         * @deprecated Use `openedChange` instead.
          */
-        this.onOpen = this._openedStream;
+        this.onOpen = new EventEmitter();
         /**
          * Event emitted when the drawer is fully closed.
-         * @deprecated Use `openedChange` instead.
          */
-        this.onClose = this._closedStream;
+        this.onClose = new EventEmitter();
         /**
          * Event emitted when the drawer's position changes.
          */
@@ -152,31 +151,27 @@ var MatDrawer = (function () {
          * to know when to when the mode changes so it can adapt the margins on the content.
          */
         this._modeChanged = new Subject();
-        this.openedChange.subscribe(function (opened) {
-            if (opened) {
-                if (_this._doc) {
-                    _this._elementFocusedBeforeDrawerWasOpened = /** @type {?} */ (_this._doc.activeElement);
-                }
-                if (_this._isFocusTrapEnabled && _this._focusTrap) {
-                    _this._focusTrap.focusInitialElementWhenReady();
-                }
+        this.onOpen.subscribe(function () {
+            if (_this._doc) {
+                _this._elementFocusedBeforeDrawerWasOpened = _this._doc.activeElement;
             }
-            else {
-                _this._restoreFocus();
+            if (_this._isFocusTrapEnabled && _this._focusTrap) {
+                _this._focusTrap.focusInitialElementWhenReady();
             }
         });
+        this.onClose.subscribe(function () { return _this._restoreFocus(); });
     }
     Object.defineProperty(MatDrawer.prototype, "position", {
-        get: /**
+        /**
          * The side that the drawer is attached to.
          * @return {?}
          */
-        function () { return this._position; },
-        set: /**
+        get: function () { return this._position; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) {
+        set: function (value) {
             // Make sure we have a valid value.
             value = value === 'end' ? 'end' : 'start';
             if (value != this._position) {
@@ -189,30 +184,30 @@ var MatDrawer = (function () {
         configurable: true
     });
     Object.defineProperty(MatDrawer.prototype, "align", {
-        get: /**
+        /**
          * @deprecated
          * @return {?}
          */
-        function () { return this.position; },
-        set: /**
+        get: function () { return this.position; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) { this.position = value; },
+        set: function (value) { this.position = value; },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MatDrawer.prototype, "mode", {
-        get: /**
+        /**
          * Mode of the drawer; one of 'over', 'push' or 'side'.
          * @return {?}
          */
-        function () { return this._mode; },
-        set: /**
+        get: function () { return this._mode; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) {
+        set: function (value) {
             this._mode = value;
             this._modeChanged.next();
         },
@@ -220,46 +215,24 @@ var MatDrawer = (function () {
         configurable: true
     });
     Object.defineProperty(MatDrawer.prototype, "disableClose", {
-        get: /**
+        /**
          * Whether the drawer can be closed with the escape key or by clicking on the backdrop.
          * @return {?}
          */
-        function () { return this._disableClose; },
-        set: /**
+        get: function () { return this._disableClose; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) { this._disableClose = coerceBooleanProperty(value); },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MatDrawer.prototype, "_openedStream", {
-        get: /**
-         * Event emitted when the drawer has been opened.
-         * @return {?}
-         */
-        function () {
-            return this.openedChange.pipe(filter(function (o) { return o; }), map(function () { }));
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MatDrawer.prototype, "_closedStream", {
-        get: /**
-         * Event emitted when the drawer has been closed.
-         * @return {?}
-         */
-        function () {
-            return this.openedChange.pipe(filter(function (o) { return !o; }), map(function () { }));
-        },
+        set: function (value) { this._disableClose = coerceBooleanProperty(value); },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MatDrawer.prototype, "_isFocusTrapEnabled", {
-        get: /**
+        /**
          * @return {?}
          */
-        function () {
+        get: function () {
             // The focus trap is only enabled when the drawer is open in any mode other than side.
             return this.opened && this.mode !== 'side';
         },
@@ -271,31 +244,22 @@ var MatDrawer = (function () {
      * opened.
      * @return {?}
      */
-    MatDrawer.prototype._restoreFocus = /**
-     * If focus is currently inside the drawer, restores it to where it was before the drawer
-     * opened.
-     * @return {?}
-     */
-    function () {
+    MatDrawer.prototype._restoreFocus = function () {
         var /** @type {?} */ activeEl = this._doc && this._doc.activeElement;
         if (activeEl && this._elementRef.nativeElement.contains(activeEl)) {
             if (this._elementFocusedBeforeDrawerWasOpened instanceof HTMLElement) {
-                this._focusMonitor.focusVia(this._elementFocusedBeforeDrawerWasOpened, this._openedVia);
+                this._elementFocusedBeforeDrawerWasOpened.focus();
             }
             else {
                 this._elementRef.nativeElement.blur();
             }
         }
         this._elementFocusedBeforeDrawerWasOpened = null;
-        this._openedVia = null;
     };
     /**
      * @return {?}
      */
-    MatDrawer.prototype.ngAfterContentInit = /**
-     * @return {?}
-     */
-    function () {
+    MatDrawer.prototype.ngAfterContentInit = function () {
         this._focusTrap = this._focusTrapFactory.create(this._elementRef.nativeElement);
         this._focusTrap.enabled = this._isFocusTrapEnabled;
         this._enableAnimations = true;
@@ -303,26 +267,23 @@ var MatDrawer = (function () {
     /**
      * @return {?}
      */
-    MatDrawer.prototype.ngOnDestroy = /**
-     * @return {?}
-     */
-    function () {
+    MatDrawer.prototype.ngOnDestroy = function () {
         if (this._focusTrap) {
             this._focusTrap.destroy();
         }
     };
     Object.defineProperty(MatDrawer.prototype, "opened", {
-        get: /**
+        /**
          * Whether the drawer is opened. We overload this because we trigger an event when it
          * starts or end.
          * @return {?}
          */
-        function () { return this._opened; },
-        set: /**
+        get: function () { return this._opened; },
+        /**
          * @param {?} v
          * @return {?}
          */
-        function (v) {
+        set: function (v) {
             this.toggle(coerceBooleanProperty(v));
         },
         enumerable: true,
@@ -330,95 +291,52 @@ var MatDrawer = (function () {
     });
     /**
      * Open the drawer.
-     * @param openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
-     */
-    /**
-     * Open the drawer.
-     * @param {?=} openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
      * @return {?}
      */
-    MatDrawer.prototype.open = /**
-     * Open the drawer.
-     * @param {?=} openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
-     * @return {?}
-     */
-    function (openedVia) {
-        return this.toggle(true, openedVia);
+    MatDrawer.prototype.open = function () {
+        return this.toggle(true);
     };
-    /** Close the drawer. */
     /**
      * Close the drawer.
      * @return {?}
      */
-    MatDrawer.prototype.close = /**
-     * Close the drawer.
-     * @return {?}
-     */
-    function () {
+    MatDrawer.prototype.close = function () {
         return this.toggle(false);
     };
     /**
      * Toggle this drawer.
-     * @param isOpen Whether the drawer should be open.
-     * @param openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
-     */
-    /**
-     * Toggle this drawer.
      * @param {?=} isOpen Whether the drawer should be open.
-     * @param {?=} openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
      * @return {?}
      */
-    MatDrawer.prototype.toggle = /**
-     * Toggle this drawer.
-     * @param {?=} isOpen Whether the drawer should be open.
-     * @param {?=} openedVia Whether the drawer was opened by a key press, mouse click or programmatically.
-     * Used for focus management after the sidenav is closed.
-     * @return {?}
-     */
-    function (isOpen, openedVia) {
+    MatDrawer.prototype.toggle = function (isOpen) {
         var _this = this;
         if (isOpen === void 0) { isOpen = !this.opened; }
-        if (openedVia === void 0) { openedVia = 'program'; }
-        this._opened = isOpen;
-        if (isOpen) {
-            this._animationState = this._enableAnimations ? 'open' : 'open-instant';
-            this._openedVia = openedVia;
-        }
-        else {
-            this._animationState = 'void';
-            this._restoreFocus();
-        }
-        if (this._focusTrap) {
-            this._focusTrap.enabled = this._isFocusTrapEnabled;
+        if (!this._isAnimating) {
+            this._opened = isOpen;
+            if (isOpen) {
+                this._animationState = this._enableAnimations ? 'open' : 'open-instant';
+            }
+            else {
+                this._animationState = 'void';
+            }
+            this._currentTogglePromise = new Promise(function (resolve) {
+                first.call(isOpen ? _this.onOpen : _this.onClose).subscribe(resolve);
+            });
+            if (this._focusTrap) {
+                this._focusTrap.enabled = this._isFocusTrapEnabled;
+            }
         }
         // TODO(crisbeto): This promise is here for backwards-compatibility.
         // It should be removed next time we do breaking changes in the drawer.
-        return new Promise(function (resolve) {
-            (isOpen ? _this.onOpen : _this.onClose).pipe(first()).subscribe(resolve);
-        });
+        return ((this._currentTogglePromise));
     };
     /**
      * Handles the keyboard events.
-     * @docs-private
-     */
-    /**
-     * Handles the keyboard events.
      * \@docs-private
      * @param {?} event
      * @return {?}
      */
-    MatDrawer.prototype.handleKeydown = /**
-     * Handles the keyboard events.
-     * \@docs-private
-     * @param {?} event
-     * @return {?}
-     */
-    function (event) {
+    MatDrawer.prototype.handleKeydown = function (event) {
         if (event.keyCode === ESCAPE && !this.disableClose) {
             this.close();
             event.stopPropagation();
@@ -428,35 +346,36 @@ var MatDrawer = (function () {
      * @param {?} event
      * @return {?}
      */
-    MatDrawer.prototype._onAnimationStart = /**
-     * @param {?} event
-     * @return {?}
-     */
-    function (event) {
+    MatDrawer.prototype._onAnimationStart = function (event) {
+        this._isAnimating = true;
         this._animationStarted.emit(event);
     };
     /**
      * @param {?} event
      * @return {?}
      */
-    MatDrawer.prototype._onAnimationEnd = /**
-     * @param {?} event
-     * @return {?}
-     */
-    function (event) {
+    MatDrawer.prototype._onAnimationEnd = function (event) {
+        var _this = this;
         var fromState = event.fromState, toState = event.toState;
         if (toState.indexOf('open') === 0 && fromState === 'void') {
-            this.openedChange.emit(true);
+            this.onOpen.emit(new MatDrawerToggleResult('open', true));
         }
         else if (toState === 'void' && fromState.indexOf('open') === 0) {
-            this.openedChange.emit(false);
+            this.onClose.emit(new MatDrawerToggleResult('close', true));
         }
+        // Note: as of Angular 4.3, the animations module seems to fire the `start` callback before
+        // the end if animations are disabled. Make this call async to ensure that it still fires
+        // at the appropriate time.
+        Promise.resolve().then(function () {
+            _this._isAnimating = false;
+            _this._currentTogglePromise = null;
+        });
     };
     Object.defineProperty(MatDrawer.prototype, "_width", {
-        get: /**
+        /**
          * @return {?}
          */
-        function () {
+        get: function () {
             return this._elementRef.nativeElement ? (this._elementRef.nativeElement.offsetWidth || 0) : 0;
         },
         enumerable: true,
@@ -498,26 +417,24 @@ var MatDrawer = (function () {
                     preserveWhitespaces: false,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatDrawer.ctorParameters = function () { return [
         { type: ElementRef, },
         { type: FocusTrapFactory, },
-        { type: FocusMonitor, },
         { type: undefined, decorators: [{ type: Optional }, { type: Inject, args: [DOCUMENT,] },] },
     ]; };
     MatDrawer.propDecorators = {
-        "position": [{ type: Input },],
-        "align": [{ type: Input },],
-        "mode": [{ type: Input },],
-        "disableClose": [{ type: Input },],
-        "openedChange": [{ type: Output },],
-        "_openedStream": [{ type: Output, args: ['opened',] },],
-        "_closedStream": [{ type: Output, args: ['closed',] },],
-        "onOpen": [{ type: Output, args: ['open',] },],
-        "onClose": [{ type: Output, args: ['close',] },],
-        "onPositionChanged": [{ type: Output, args: ['positionChanged',] },],
-        "onAlignChanged": [{ type: Output, args: ['align-changed',] },],
-        "opened": [{ type: Input },],
+        'position': [{ type: Input },],
+        'align': [{ type: Input },],
+        'mode': [{ type: Input },],
+        'disableClose': [{ type: Input },],
+        'onOpen': [{ type: Output, args: ['open',] },],
+        'onClose': [{ type: Output, args: ['close',] },],
+        'onPositionChanged': [{ type: Output, args: ['positionChanged',] },],
+        'onAlignChanged': [{ type: Output, args: ['align-changed',] },],
+        'opened': [{ type: Input },],
     };
     return MatDrawer;
 }());
@@ -528,6 +445,13 @@ var MatDrawer = (function () {
  * and coordinates the backdrop and content styling.
  */
 var MatDrawerContainer = (function () {
+    /**
+     * @param {?} _dir
+     * @param {?} _element
+     * @param {?} _renderer
+     * @param {?} _ngZone
+     * @param {?} _changeDetectorRef
+     */
     function MatDrawerContainer(_dir, _element, _renderer, _ngZone, _changeDetectorRef) {
         var _this = this;
         this._dir = _dir;
@@ -547,38 +471,33 @@ var MatDrawerContainer = (function () {
         // If a `Dir` directive exists up the tree, listen direction changes and update the left/right
         // properties to point to the proper start/end.
         if (_dir != null) {
-            _dir.change.pipe(takeUntil(this._destroyed)).subscribe(function () { return _this._validateDrawers(); });
+            takeUntil.call(_dir.change, this._destroyed).subscribe(function () { return _this._validateDrawers(); });
         }
     }
     Object.defineProperty(MatDrawerContainer.prototype, "start", {
-        /** The drawer child with the `start` position. */
-        get: /**
+        /**
          * The drawer child with the `start` position.
          * @return {?}
          */
-        function () { return this._start; },
+        get: function () { return this._start; },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MatDrawerContainer.prototype, "end", {
-        /** The drawer child with the `end` position. */
-        get: /**
+        /**
          * The drawer child with the `end` position.
          * @return {?}
          */
-        function () { return this._end; },
+        get: function () { return this._end; },
         enumerable: true,
         configurable: true
     });
     /**
      * @return {?}
      */
-    MatDrawerContainer.prototype.ngAfterContentInit = /**
-     * @return {?}
-     */
-    function () {
+    MatDrawerContainer.prototype.ngAfterContentInit = function () {
         var _this = this;
-        this._drawers.changes.pipe(startWith(null)).subscribe(function () {
+        startWith.call(this._drawers.changes, null).subscribe(function () {
             _this._validateDrawers();
             _this._drawers.forEach(function (drawer) {
                 _this._watchDrawerToggle(drawer);
@@ -596,35 +515,22 @@ var MatDrawerContainer = (function () {
     /**
      * @return {?}
      */
-    MatDrawerContainer.prototype.ngOnDestroy = /**
-     * @return {?}
-     */
-    function () {
+    MatDrawerContainer.prototype.ngOnDestroy = function () {
         this._destroyed.next();
         this._destroyed.complete();
     };
-    /** Calls `open` of both start and end drawers */
     /**
      * Calls `open` of both start and end drawers
      * @return {?}
      */
-    MatDrawerContainer.prototype.open = /**
-     * Calls `open` of both start and end drawers
-     * @return {?}
-     */
-    function () {
+    MatDrawerContainer.prototype.open = function () {
         this._drawers.forEach(function (drawer) { return drawer.open(); });
     };
-    /** Calls `close` of both start and end drawers */
     /**
      * Calls `close` of both start and end drawers
      * @return {?}
      */
-    MatDrawerContainer.prototype.close = /**
-     * Calls `close` of both start and end drawers
-     * @return {?}
-     */
-    function () {
+    MatDrawerContainer.prototype.close = function () {
         this._drawers.forEach(function (drawer) { return drawer.close(); });
     };
     /**
@@ -634,16 +540,11 @@ var MatDrawerContainer = (function () {
      * @param {?} drawer
      * @return {?}
      */
-    MatDrawerContainer.prototype._watchDrawerToggle = /**
-     * Subscribes to drawer events in order to set a class on the main container element when the
-     * drawer is open and the backdrop is visible. This ensures any overflow on the container element
-     * is properly hidden.
-     * @param {?} drawer
-     * @return {?}
-     */
-    function (drawer) {
+    MatDrawerContainer.prototype._watchDrawerToggle = function (drawer) {
         var _this = this;
-        drawer._animationStarted.pipe(takeUntil(this._drawers.changes), filter(function (event) { return event.fromState !== event.toState; }))
+        RxChain.from(drawer._animationStarted)
+            .call(takeUntil, this._drawers.changes)
+            .call(filter, function (event) { return event.fromState !== event.toState; })
             .subscribe(function (event) {
             // Set the transition class on the container so that the animations occur. This should not
             // be set initially because animations should only be triggered via a change in state.
@@ -654,7 +555,7 @@ var MatDrawerContainer = (function () {
             _this._changeDetectorRef.markForCheck();
         });
         if (drawer.mode !== 'side') {
-            drawer.openedChange.pipe(takeUntil(this._drawers.changes)).subscribe(function () {
+            takeUntil.call(merge(drawer.onOpen, drawer.onClose), this._drawers.changes).subscribe(function () {
                 return _this._setContainerClass(drawer.opened);
             });
         }
@@ -665,21 +566,15 @@ var MatDrawerContainer = (function () {
      * @param {?} drawer
      * @return {?}
      */
-    MatDrawerContainer.prototype._watchDrawerPosition = /**
-     * Subscribes to drawer onPositionChanged event in order to
-     * re-validate drawers when the position changes.
-     * @param {?} drawer
-     * @return {?}
-     */
-    function (drawer) {
+    MatDrawerContainer.prototype._watchDrawerPosition = function (drawer) {
         var _this = this;
         if (!drawer) {
             return;
         }
         // NOTE: We need to wait for the microtask queue to be empty before validating,
         // since both drawers may be swapping positions at the same time.
-        drawer.onPositionChanged.pipe(takeUntil(this._drawers.changes)).subscribe(function () {
-            _this._ngZone.onMicrotaskEmpty.asObservable().pipe(first()).subscribe(function () {
+        takeUntil.call(drawer.onPositionChanged, this._drawers.changes).subscribe(function () {
+            first.call(_this._ngZone.onMicrotaskEmpty.asObservable()).subscribe(function () {
                 _this._validateDrawers();
             });
         });
@@ -689,15 +584,10 @@ var MatDrawerContainer = (function () {
      * @param {?} drawer
      * @return {?}
      */
-    MatDrawerContainer.prototype._watchDrawerMode = /**
-     * Subscribes to changes in drawer mode so we can run change detection.
-     * @param {?} drawer
-     * @return {?}
-     */
-    function (drawer) {
+    MatDrawerContainer.prototype._watchDrawerMode = function (drawer) {
         var _this = this;
         if (drawer) {
-            drawer._modeChanged.pipe(takeUntil(merge(this._drawers.changes, this._destroyed)))
+            takeUntil.call(drawer._modeChanged, merge(this._drawers.changes, this._destroyed))
                 .subscribe(function () {
                 _this._updateContentMargins();
                 _this._changeDetectorRef.markForCheck();
@@ -709,12 +599,7 @@ var MatDrawerContainer = (function () {
      * @param {?} isAdd
      * @return {?}
      */
-    MatDrawerContainer.prototype._setContainerClass = /**
-     * Toggles the 'mat-drawer-opened' class on the main 'mat-drawer-container' element.
-     * @param {?} isAdd
-     * @return {?}
-     */
-    function (isAdd) {
+    MatDrawerContainer.prototype._setContainerClass = function (isAdd) {
         if (isAdd) {
             this._renderer.addClass(this._element.nativeElement, 'mat-drawer-opened');
         }
@@ -726,11 +611,7 @@ var MatDrawerContainer = (function () {
      * Validate the state of the drawer children components.
      * @return {?}
      */
-    MatDrawerContainer.prototype._validateDrawers = /**
-     * Validate the state of the drawer children components.
-     * @return {?}
-     */
-    function () {
+    MatDrawerContainer.prototype._validateDrawers = function () {
         var _this = this;
         this._start = this._end = null;
         // Ensure that we have at most one start and one end drawer.
@@ -762,44 +643,31 @@ var MatDrawerContainer = (function () {
     /**
      * @return {?}
      */
-    MatDrawerContainer.prototype._onBackdropClicked = /**
-     * @return {?}
-     */
-    function () {
+    MatDrawerContainer.prototype._onBackdropClicked = function () {
         this.backdropClick.emit();
         this._closeModalDrawer();
     };
     /**
      * @return {?}
      */
-    MatDrawerContainer.prototype._closeModalDrawer = /**
-     * @return {?}
-     */
-    function () {
+    MatDrawerContainer.prototype._closeModalDrawer = function () {
         // Close all open drawers where closing is not disabled and the mode is not `side`.
         [this._start, this._end]
             .filter(function (drawer) { return drawer && !drawer.disableClose && drawer.mode !== 'side'; })
-            .forEach(function (drawer) { return /** @type {?} */ ((drawer)).close(); });
+            .forEach(function (drawer) { /** @type {?} */ return ((drawer)).close(); });
     };
     /**
      * @return {?}
      */
-    MatDrawerContainer.prototype._isShowingBackdrop = /**
-     * @return {?}
-     */
-    function () {
-        return (this._isDrawerOpen(this._start) && /** @type {?} */ ((this._start)).mode != 'side')
-            || (this._isDrawerOpen(this._end) && /** @type {?} */ ((this._end)).mode != 'side');
+    MatDrawerContainer.prototype._isShowingBackdrop = function () {
+        return (this._isDrawerOpen(this._start) && ((this._start)).mode != 'side')
+            || (this._isDrawerOpen(this._end) && ((this._end)).mode != 'side');
     };
     /**
      * @param {?} drawer
      * @return {?}
      */
-    MatDrawerContainer.prototype._isDrawerOpen = /**
-     * @param {?} drawer
-     * @return {?}
-     */
-    function (drawer) {
+    MatDrawerContainer.prototype._isDrawerOpen = function (drawer) {
         return drawer != null && drawer.opened;
     };
     /**
@@ -807,12 +675,7 @@ var MatDrawerContainer = (function () {
      * sparingly, because it causes a reflow.
      * @return {?}
      */
-    MatDrawerContainer.prototype._updateContentMargins = /**
-     * Recalculates and updates the inline styles for the content. Note that this should be used
-     * sparingly, because it causes a reflow.
-     * @return {?}
-     */
-    function () {
+    MatDrawerContainer.prototype._updateContentMargins = function () {
         // 1. For drawers in `over` mode, they don't affect the content.
         // 2. For drawers in `side` mode they should shrink the content. We do this by adding to the
         //    left margin (for left drawer) or right margin (for right the drawer).
@@ -847,7 +710,7 @@ var MatDrawerContainer = (function () {
         { type: Component, args: [{selector: 'mat-drawer-container',
                     exportAs: 'matDrawerContainer',
                     template: "<div class=\"mat-drawer-backdrop\" (click)=\"_onBackdropClicked()\" [class.mat-drawer-shown]=\"_isShowingBackdrop()\"></div><ng-content select=\"mat-drawer\"></ng-content><ng-content select=\"mat-drawer-content\"></ng-content><mat-drawer-content *ngIf=\"!_content\" cdkScrollable><ng-content></ng-content></mat-drawer-content>",
-                    styles: [".mat-drawer-container{position:relative;z-index:1;box-sizing:border-box;-webkit-overflow-scrolling:touch;display:block;overflow:hidden}.mat-drawer-container[fullscreen]{top:0;left:0;right:0;bottom:0;position:absolute}.mat-drawer-container[fullscreen].mat-drawer-opened{overflow:hidden}.mat-drawer-backdrop{top:0;left:0;right:0;bottom:0;position:absolute;display:block;z-index:3;visibility:hidden}.mat-drawer-backdrop.mat-drawer-shown{visibility:visible}.mat-drawer-transition .mat-drawer-backdrop{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:background-color,visibility}@media screen and (-ms-high-contrast:active){.mat-drawer-backdrop{opacity:.5}}.mat-drawer-content{-webkit-backface-visibility:hidden;backface-visibility:hidden;position:relative;z-index:1;display:block;height:100%;overflow:auto}.mat-drawer-transition .mat-drawer-content{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:transform,margin-left,margin-right}.mat-drawer{position:relative;z-index:4;display:block;position:absolute;top:0;bottom:0;z-index:3;min-width:5vw;outline:0;box-sizing:border-box;overflow-y:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-side{z-index:2}.mat-drawer.mat-drawer-end{right:0;transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer{transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer.mat-drawer-end{left:0;right:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-opened:not(.mat-drawer-side),.mat-drawer.mat-drawer-opening:not(.mat-drawer-side){box-shadow:0 8px 10px -5px rgba(0,0,0,.2),0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12)}.mat-sidenav-fixed{position:fixed}"],
+                    styles: [".mat-drawer-container{position:relative;z-index:1;box-sizing:border-box;-webkit-overflow-scrolling:touch;display:block;overflow:hidden}.mat-drawer-container[fullscreen]{top:0;left:0;right:0;bottom:0;position:absolute}.mat-drawer-container[fullscreen].mat-drawer-opened{overflow:hidden}.mat-drawer-backdrop{top:0;left:0;right:0;bottom:0;position:absolute;display:block;z-index:3;visibility:hidden}.mat-drawer-backdrop.mat-drawer-shown{visibility:visible}.mat-drawer-transition .mat-drawer-backdrop{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:background-color,visibility}@media screen and (-ms-high-contrast:active){.mat-drawer-backdrop{opacity:.5}}.mat-drawer-content{position:relative;z-index:1;display:block;height:100%;overflow:auto}.mat-drawer-transition .mat-drawer-content{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:transform,margin-left,margin-right}.mat-drawer{position:relative;z-index:4;display:block;position:absolute;top:0;bottom:0;z-index:3;min-width:5vw;outline:0;box-sizing:border-box;overflow-y:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-side{z-index:2}.mat-drawer.mat-drawer-end{right:0;transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer{transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer.mat-drawer-end{left:0;right:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-opened:not(.mat-drawer-side),.mat-drawer.mat-drawer-opening:not(.mat-drawer-side){box-shadow:0 8px 10px -5px rgba(0,0,0,.2),0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12)}.mat-sidenav-fixed{position:fixed}"],
                     host: {
                         'class': 'mat-drawer-container',
                     },
@@ -856,7 +719,9 @@ var MatDrawerContainer = (function () {
                     preserveWhitespaces: false,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatDrawerContainer.ctorParameters = function () { return [
         { type: Directionality, decorators: [{ type: Optional },] },
         { type: ElementRef, },
@@ -865,19 +730,19 @@ var MatDrawerContainer = (function () {
         { type: ChangeDetectorRef, },
     ]; };
     MatDrawerContainer.propDecorators = {
-        "_drawers": [{ type: ContentChildren, args: [MatDrawer,] },],
-        "_content": [{ type: ContentChild, args: [MatDrawerContent,] },],
-        "backdropClick": [{ type: Output },],
+        '_drawers': [{ type: ContentChildren, args: [MatDrawer,] },],
+        '_content': [{ type: ContentChild, args: [MatDrawerContent,] },],
+        'backdropClick': [{ type: Output },],
     };
     return MatDrawerContainer;
 }());
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 var MatSidenavContent = (function (_super) {
     __extends(MatSidenavContent, _super);
+    /**
+     * @param {?} changeDetectorRef
+     * @param {?} container
+     */
     function MatSidenavContent(changeDetectorRef, container) {
         return _super.call(this, changeDetectorRef, container) || this;
     }
@@ -894,7 +759,9 @@ var MatSidenavContent = (function (_super) {
                     preserveWhitespaces: false,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatSidenavContent.ctorParameters = function () { return [
         { type: ChangeDetectorRef, },
         { type: MatSidenavContainer, decorators: [{ type: Inject, args: [forwardRef(function () { return MatSidenavContainer; }),] },] },
@@ -911,46 +778,46 @@ var MatSidenav = (function (_super) {
         return _this;
     }
     Object.defineProperty(MatSidenav.prototype, "fixedInViewport", {
-        get: /**
+        /**
          * Whether the sidenav is fixed in the viewport.
          * @return {?}
          */
-        function () { return this._fixedInViewport; },
-        set: /**
+        get: function () { return this._fixedInViewport; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) { this._fixedInViewport = coerceBooleanProperty(value); },
+        set: function (value) { this._fixedInViewport = coerceBooleanProperty(value); },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MatSidenav.prototype, "fixedTopGap", {
-        get: /**
+        /**
          * The gap between the top of the sidenav and the top of the viewport when the sidenav is in fixed
          * mode.
          * @return {?}
          */
-        function () { return this._fixedTopGap; },
-        set: /**
+        get: function () { return this._fixedTopGap; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) { this._fixedTopGap = coerceNumberProperty(value); },
+        set: function (value) { this._fixedTopGap = coerceNumberProperty(value); },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MatSidenav.prototype, "fixedBottomGap", {
-        get: /**
+        /**
          * The gap between the bottom of the sidenav and the bottom of the viewport when the sidenav is in
          * fixed mode.
          * @return {?}
          */
-        function () { return this._fixedBottomGap; },
-        set: /**
+        get: function () { return this._fixedBottomGap; },
+        /**
          * @param {?} value
          * @return {?}
          */
-        function (value) { this._fixedBottomGap = coerceNumberProperty(value); },
+        set: function (value) { this._fixedBottomGap = coerceNumberProperty(value); },
         enumerable: true,
         configurable: true
     });
@@ -993,12 +860,14 @@ var MatSidenav = (function (_super) {
                     preserveWhitespaces: false,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatSidenav.ctorParameters = function () { return []; };
     MatSidenav.propDecorators = {
-        "fixedInViewport": [{ type: Input },],
-        "fixedTopGap": [{ type: Input },],
-        "fixedBottomGap": [{ type: Input },],
+        'fixedInViewport': [{ type: Input },],
+        'fixedTopGap': [{ type: Input },],
+        'fixedBottomGap': [{ type: Input },],
     };
     return MatSidenav;
 }(MatDrawer));
@@ -1011,7 +880,7 @@ var MatSidenavContainer = (function (_super) {
         { type: Component, args: [{selector: 'mat-sidenav-container',
                     exportAs: 'matSidenavContainer',
                     template: "<div class=\"mat-drawer-backdrop\" (click)=\"_onBackdropClicked()\" [class.mat-drawer-shown]=\"_isShowingBackdrop()\"></div><ng-content select=\"mat-sidenav\"></ng-content><ng-content select=\"mat-sidenav-content\"></ng-content><mat-sidenav-content *ngIf=\"!_content\" cdkScrollable><ng-content></ng-content></mat-sidenav-content>",
-                    styles: [".mat-drawer-container{position:relative;z-index:1;box-sizing:border-box;-webkit-overflow-scrolling:touch;display:block;overflow:hidden}.mat-drawer-container[fullscreen]{top:0;left:0;right:0;bottom:0;position:absolute}.mat-drawer-container[fullscreen].mat-drawer-opened{overflow:hidden}.mat-drawer-backdrop{top:0;left:0;right:0;bottom:0;position:absolute;display:block;z-index:3;visibility:hidden}.mat-drawer-backdrop.mat-drawer-shown{visibility:visible}.mat-drawer-transition .mat-drawer-backdrop{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:background-color,visibility}@media screen and (-ms-high-contrast:active){.mat-drawer-backdrop{opacity:.5}}.mat-drawer-content{-webkit-backface-visibility:hidden;backface-visibility:hidden;position:relative;z-index:1;display:block;height:100%;overflow:auto}.mat-drawer-transition .mat-drawer-content{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:transform,margin-left,margin-right}.mat-drawer{position:relative;z-index:4;display:block;position:absolute;top:0;bottom:0;z-index:3;min-width:5vw;outline:0;box-sizing:border-box;overflow-y:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-side{z-index:2}.mat-drawer.mat-drawer-end{right:0;transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer{transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer.mat-drawer-end{left:0;right:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-opened:not(.mat-drawer-side),.mat-drawer.mat-drawer-opening:not(.mat-drawer-side){box-shadow:0 8px 10px -5px rgba(0,0,0,.2),0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12)}.mat-sidenav-fixed{position:fixed}"],
+                    styles: [".mat-drawer-container{position:relative;z-index:1;box-sizing:border-box;-webkit-overflow-scrolling:touch;display:block;overflow:hidden}.mat-drawer-container[fullscreen]{top:0;left:0;right:0;bottom:0;position:absolute}.mat-drawer-container[fullscreen].mat-drawer-opened{overflow:hidden}.mat-drawer-backdrop{top:0;left:0;right:0;bottom:0;position:absolute;display:block;z-index:3;visibility:hidden}.mat-drawer-backdrop.mat-drawer-shown{visibility:visible}.mat-drawer-transition .mat-drawer-backdrop{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:background-color,visibility}@media screen and (-ms-high-contrast:active){.mat-drawer-backdrop{opacity:.5}}.mat-drawer-content{position:relative;z-index:1;display:block;height:100%;overflow:auto}.mat-drawer-transition .mat-drawer-content{transition-duration:.4s;transition-timing-function:cubic-bezier(.25,.8,.25,1);transition-property:transform,margin-left,margin-right}.mat-drawer{position:relative;z-index:4;display:block;position:absolute;top:0;bottom:0;z-index:3;min-width:5vw;outline:0;box-sizing:border-box;overflow-y:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-side{z-index:2}.mat-drawer.mat-drawer-end{right:0;transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer{transform:translate3d(100%,0,0)}[dir=rtl] .mat-drawer.mat-drawer-end{left:0;right:auto;transform:translate3d(-100%,0,0)}.mat-drawer.mat-drawer-opened:not(.mat-drawer-side),.mat-drawer.mat-drawer-opening:not(.mat-drawer-side){box-shadow:0 8px 10px -5px rgba(0,0,0,.2),0 16px 24px 2px rgba(0,0,0,.14),0 6px 30px 5px rgba(0,0,0,.12)}.mat-sidenav-fixed{position:fixed}"],
                     host: {
                         'class': 'mat-drawer-container mat-sidenav-container',
                     },
@@ -1020,19 +889,16 @@ var MatSidenavContainer = (function (_super) {
                     preserveWhitespaces: false,
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatSidenavContainer.ctorParameters = function () { return []; };
     MatSidenavContainer.propDecorators = {
-        "_drawers": [{ type: ContentChildren, args: [MatSidenav,] },],
-        "_content": [{ type: ContentChild, args: [MatSidenavContent,] },],
+        '_drawers': [{ type: ContentChildren, args: [MatSidenav,] },],
+        '_content': [{ type: ContentChild, args: [MatSidenavContent,] },],
     };
     return MatSidenavContainer;
 }(MatDrawerContainer));
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 
 var MatSidenavModule = (function () {
     function MatSidenavModule() {
@@ -1065,20 +931,13 @@ var MatSidenavModule = (function () {
                     ],
                 },] },
     ];
-    /** @nocollapse */
+    /**
+     * @nocollapse
+     */
     MatSidenavModule.ctorParameters = function () { return []; };
     return MatSidenavModule;
 }());
 
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
- */
 /**
  * Generated bundle index. Do not edit.
  */
