@@ -197,7 +197,11 @@ var MatDialogContainer = (function (_super) {
         else if (event.toState === 'exit') {
             this._restoreFocus();
         }
-        this._animationStateChanged.emit(event);
+        var that = this;
+        Promise.resolve().then(function() {
+            that._animationStateChanged.emit(event);
+            that._isAnimating = false;
+        });
     };
     /**
      * Callback, invoked when an animation on the host starts.
